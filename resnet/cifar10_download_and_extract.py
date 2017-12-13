@@ -24,6 +24,7 @@ import os
 import sys
 import tarfile
 
+from pathlib import *
 from six.moves import urllib
 import tensorflow as tf
 
@@ -32,7 +33,7 @@ DATA_URL = 'https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz'
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
-    '--data_dir', type=str, default='/tmp/cifar10_data',
+    '--data_dir', type=str, default=os.path.join(os.path.dirname(__file__), '../datasets'),
     help='Directory to download data and extract the tarball')
 
 
