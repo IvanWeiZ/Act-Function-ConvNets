@@ -236,18 +236,18 @@ def cifar10_resnet_v2_generator(resnet_size, num_classes, data_format=None, acti
     raise ValueError('resnet_size must be 6n + 2:', resnet_size)
   print("---cifar10_resnet_v2_generator__Str",activation)
   num_blocks = (resnet_size - 2) // 6
-  actFun=tf.nn.relu
+  _ACTIVATION=tf.nn.relu
   if activation=='swish':
-    actFun=swish
+    _ACTIVATION=swish
   elif activation=='elu':
-    actFun=tf.nn.elu
+    _ACTIVATION=tf.nn.elu
   elif activation=='tanh':
-    actFun=tf.nn.tanh
+    _ACTIVATION=tf.nn.tanh
   elif activation=='lrelu':
-    actFun=tf.nn.leaky_relu
+    _ACTIVATION=tf.nn.leaky_relu
 
   _ACTIVATION=actFun
-  print("-----cifar10_resnet_v2_generator",actFun)
+  print("-----cifar10_resnet_v2_generator",_ACTIVATION)
   if data_format is None:
     data_format = (
         'channels_first' if tf.test.is_built_with_cuda() else 'channels_last')
