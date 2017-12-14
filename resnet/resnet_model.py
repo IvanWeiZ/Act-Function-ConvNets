@@ -93,7 +93,7 @@ def conv2d_fixed_padding(inputs, filters, kernel_size, strides, data_format):
 
 
 def building_block(inputs, filters, is_training, projection_shortcut, strides,
-                   data_format):
+                   data_format,actfun):
   """Standard building block for residual networks with BN before convolutions.
 
   Args:
@@ -112,7 +112,7 @@ def building_block(inputs, filters, is_training, projection_shortcut, strides,
     The output tensor of the block.
   """
   shortcut = inputs
-  inputs = batch_norm(inputs, is_training, data_format)
+  inputs = batch_norm(inputs, is_training, data_format,actfun)
 
   # The projection shortcut should come after the first batch norm and ReLU
   # since it performs a 1x1 convolution.
@@ -123,7 +123,7 @@ def building_block(inputs, filters, is_training, projection_shortcut, strides,
       inputs=inputs, filters=filters, kernel_size=3, strides=strides,
       data_format=data_format)
 
-  inputs = batch_norm(inputs, is_training, data_format)
+  inputs = batch_norm(inputs, is_training, data_format,actfun)
   inputs = conv2d_fixed_padding(
       inputs=inputs, filters=filters, kernel_size=3, strides=1,
       data_format=data_format)
