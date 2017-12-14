@@ -246,7 +246,6 @@ def cifar10_resnet_v2_generator(resnet_size, num_classes, data_format=None, acti
   elif activation=='lrelu':
     _ACTIVATION=tf.nn.leaky_relu
 
-  _ACTIVATION=actFun
   print("-----cifar10_resnet_v2_generator",_ACTIVATION)
   if data_format is None:
     data_format = (
