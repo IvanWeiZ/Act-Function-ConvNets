@@ -60,7 +60,7 @@ _HEIGHT = 32
 _WIDTH = 32
 _DEPTH = 3
 _NUM_CLASSES = 100
-_NUM_DATA_FILES = 5
+#_NUM_DATA_FILES = 5
 
 # We use a weight decay of 0.0002, which performs better than the 0.0001 that
 # was originally suggested.
@@ -81,26 +81,25 @@ def record_dataset(filenames):
 
 def get_filenames(is_training, data_dir):
   """Returns a list of filenames."""
-  data_dir = os.path.join(data_dir, 'cifar-100-python')
+  data_dir = os.path.join(data_dir, 'cifar-100-binary')
 
   assert os.path.exists(data_dir), (
-      'Run cifar10_download_and_extract.py first to download and extract the '
-      'CIFAR-10 data.')
+      'Run cifar100_download_and_extract.py first to download and extract the '
+      'CIFAR-100 data.')
 
   if is_training:
     return [
-        os.path.join(data_dir, 'data_batch_%d.bin' % i)
-        for i in range(1, _NUM_DATA_FILES + 1)
+        os.path.join(data_dir, 'train.bin')
     ]
   else:
-    return [os.path.join(data_dir, 'test_batch.bin')]
+    return [os.path.join(data_dir, 'test.bin')]
 
 
 def parse_record(raw_record):
-  """Parse CIFAR-10 image and label from a raw record."""
+  """Parse CIFAR-100 image and label from a raw record."""
   # Every record consists of a label followed by the image, with a fixed number
   # of bytes for each.
-  label_bytes = 1
+  label_bytes = 2
   image_bytes = _HEIGHT * _WIDTH * _DEPTH
   record_bytes = label_bytes + image_bytes
 
@@ -109,7 +108,7 @@ def parse_record(raw_record):
 
   # The first byte represents the label, which we convert from uint8 to int32
   # and then to one-hot.
-  label = tf.cast(record_vector[0], tf.int32)
+  label = tf.cast(tf.slice(record_bytes, [0], [label_bytes]), tf.int32)
   label = tf.one_hot(label, _NUM_CLASSES)
 
   # The remaining bytes after the label represent the image, which we reshape
