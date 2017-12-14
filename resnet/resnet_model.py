@@ -37,18 +37,18 @@ from activations import swish
 
 _BATCH_NORM_DECAY = 0.997
 _BATCH_NORM_EPSILON = 1e-5
+_ACTIVATION=tf.nn.relu
 
-
-def batch_norm(inputs, is_training, data_format, activation=tf.nn.relu):
+def batch_norm(inputs, is_training, data_format):
   """Performs a batch normalization followed by a ReLU."""
   # We set fused=True for a significant performance boost. See
   # https://www.tensorflow.org/performance/performance_guide#common_fused_ops
-  print("-----batch_norm",activation)
+  print("-----batch_norm",_ACTIVATION)
   inputs = tf.layers.batch_normalization(
       inputs=inputs, axis=1 if data_format == 'channels_first' else 3,
       momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
       scale=True, training=is_training, fused=True)
-  inputs = activation(inputs)
+  inputs = _ACTIVATION(inputs)
   return inputs
 
 
@@ -246,6 +246,7 @@ def cifar10_resnet_v2_generator(resnet_size, num_classes, data_format=None, acti
   elif activation=='lrelu':
     actFun=tf.nn.leaky_relu
 
+  _ACTIVATION=actFun
   print("-----cifar10_resnet_v2_generator",actFun)
   if data_format is None:
     data_format = (

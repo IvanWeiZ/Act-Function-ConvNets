@@ -187,7 +187,7 @@ def input_fn(is_training, data_dir, batch_size, num_epochs=1):
 def cifar10_model_fn(features, labels, mode, params):
   """Model function for CIFAR-10."""
   tf.summary.image('images', features, max_outputs=6)
-  print("------cifar10_model_fn",FLAGS.activation)
+  # print("------cifar10_model_fn",FLAGS.activation)
   network = resnet_model.cifar10_resnet_v2_generator(
       params['resnet_size'], _NUM_CLASSES, params['data_format'], FLAGS.activation)
 
