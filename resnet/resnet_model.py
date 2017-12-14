@@ -234,7 +234,7 @@ def cifar10_resnet_v2_generator(resnet_size, num_classes, data_format=None, acti
   """
   if resnet_size % 6 != 2:
     raise ValueError('resnet_size must be 6n + 2:', resnet_size)
-
+  print(activation)
   num_blocks = (resnet_size - 2) // 6
   actFun=tf.nn.relu
   if activation=='swish':
