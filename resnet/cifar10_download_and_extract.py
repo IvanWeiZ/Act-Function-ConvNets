@@ -24,7 +24,6 @@ import os
 import sys
 import tarfile
 
-from pathlib import *
 from six.moves import urllib
 import tensorflow as tf
 

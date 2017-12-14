@@ -30,7 +30,7 @@ import resnet_model
 parser = argparse.ArgumentParser()
 
 # Basic model parameters.
-parser.add_argument('--data_dir', type=str, default='/tmp/cifar100_data',
+parser.add_argument('--data_dir', type=str, default=os.path.join(os.path.dirname(__file__), '../datasets'),
                     help='The path to the CIFAR-100 data directory.')
 
 parser.add_argument('--model_dir', type=str, default='/tmp/cifar100_model',
@@ -81,7 +81,7 @@ def record_dataset(filenames):
 
 def get_filenames(is_training, data_dir):
   """Returns a list of filenames."""
-  data_dir = os.path.join(data_dir, 'cifar-10-batches-bin')
+  data_dir = os.path.join(data_dir, 'cifar-100-python')
 
   assert os.path.exists(data_dir), (
       'Run cifar10_download_and_extract.py first to download and extract the '
