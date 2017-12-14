@@ -37,9 +37,8 @@ from activations import swish
 
 _BATCH_NORM_DECAY = 0.997
 _BATCH_NORM_EPSILON = 1e-5
-actfun=None
 
-def batch_norm(inputs, is_training, data_format):
+def batch_norm(inputs, is_training, data_format,actfun):
   """Performs a batch normalization followed by a ReLU."""
   # We set fused=True for a significant performance boost. See
   # https://www.tensorflow.org/performance/performance_guide#common_fused_ops
@@ -133,7 +132,7 @@ def building_block(inputs, filters, is_training, projection_shortcut, strides,
 
 
 def bottleneck_block(inputs, filters, is_training, projection_shortcut,
-                     strides, data_format):
+                     strides, data_format,actfun):
   """Bottleneck block variant for residual networks with BN before convolutions.
 
   Args:
@@ -153,7 +152,7 @@ def bottleneck_block(inputs, filters, is_training, projection_shortcut,
     The output tensor of the block.
   """
   shortcut = inputs
-  inputs = batch_norm(inputs, is_training, data_format)
+  inputs = batch_norm(inputs, is_training, data_format,actfun)
 
   # The projection shortcut should come after the first batch norm and ReLU
   # since it performs a 1x1 convolution.
@@ -164,12 +163,12 @@ def bottleneck_block(inputs, filters, is_training, projection_shortcut,
       inputs=inputs, filters=filters, kernel_size=1, strides=1,
       data_format=data_format)
 
-  inputs = batch_norm(inputs, is_training, data_format)
+  inputs = batch_norm(inputs, is_training, data_format,actfun)
   inputs = conv2d_fixed_padding(
       inputs=inputs, filters=filters, kernel_size=3, strides=strides,
       data_format=data_format)
 
-  inputs = batch_norm(inputs, is_training, data_format)
+  inputs = batch_norm(inputs, is_training, data_format,actfun)
   inputs = conv2d_fixed_padding(
       inputs=inputs, filters=4 * filters, kernel_size=1, strides=1,
       data_format=data_format)
@@ -178,7 +177,7 @@ def bottleneck_block(inputs, filters, is_training, projection_shortcut,
 
 
 def block_layer(inputs, filters, block_fn, blocks, strides, is_training, name,
-                data_format):
+                data_format,actfun):
   """Creates one layer of blocks for the ResNet model.
 
   Args:
@@ -267,17 +266,17 @@ def cifar10_resnet_v2_generator(resnet_size, num_classes, data_format=None, acti
     inputs = block_layer(
         inputs=inputs, filters=16, block_fn=building_block, blocks=num_blocks,
         strides=1, is_training=is_training, name='block_layer1',
-        data_format=data_format)
+        data_format=data_format,actfun)
     inputs = block_layer(
         inputs=inputs, filters=32, block_fn=building_block, blocks=num_blocks,
         strides=2, is_training=is_training, name='block_layer2',
-        data_format=data_format)
+        data_format=data_format,actfun)
     inputs = block_layer(
         inputs=inputs, filters=64, block_fn=building_block, blocks=num_blocks,
         strides=2, is_training=is_training, name='block_layer3',
-        data_format=data_format)
+        data_format=data_format,actfun)
 
-    inputs = batch_norm(inputs, is_training, data_format)
+    inputs = batch_norm(inputs, is_training, data_format,actfun)
     inputs = tf.layers.average_pooling2d(
         inputs=inputs, pool_size=8, strides=1, padding='VALID',
         data_format=data_format)
