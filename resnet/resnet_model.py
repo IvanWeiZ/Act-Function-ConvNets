@@ -207,10 +207,10 @@ def block_layer(inputs, filters, block_fn, blocks, strides, is_training, name,
 
   # Only the first block per block_layer uses projection_shortcut and strides
   inputs = block_fn(inputs, filters, is_training, projection_shortcut, strides,
-                    data_format)
+                    data_format,actfun)
 
   for _ in range(1, blocks):
-    inputs = block_fn(inputs, filters, is_training, None, 1, data_format)
+    inputs = block_fn(inputs, filters, is_training, None, 1, data_format,actfun)
 
   return tf.identity(inputs, name)
 
@@ -289,89 +289,89 @@ def cifar10_resnet_v2_generator(resnet_size, num_classes, data_format=None, acti
   return model
 
 
-def imagenet_resnet_v2_generator(block_fn, layers, num_classes,
-                                 data_format=None):
-  """Generator for ImageNet ResNet v2 models.
+# def imagenet_resnet_v2_generator(block_fn, layers, num_classes,
+#                                  data_format=None):
+#   """Generator for ImageNet ResNet v2 models.
 
-  Args:
-    block_fn: The block to use within the model, either `building_block` or
-      `bottleneck_block`.
-    layers: A length-4 array denoting the number of blocks to include in each
-      layer. Each layer consists of blocks that take inputs of the same size.
-    num_classes: The number of possible classes for image classification.
-    data_format: The input format ('channels_last', 'channels_first', or None).
-      If set to None, the format is dependent on whether a GPU is available.
+#   Args:
+#     block_fn: The block to use within the model, either `building_block` or
+#       `bottleneck_block`.
+#     layers: A length-4 array denoting the number of blocks to include in each
+#       layer. Each layer consists of blocks that take inputs of the same size.
+#     num_classes: The number of possible classes for image classification.
+#     data_format: The input format ('channels_last', 'channels_first', or None).
+#       If set to None, the format is dependent on whether a GPU is available.
 
-  Returns:
-    The model function that takes in `inputs` and `is_training` and
-    returns the output tensor of the ResNet model.
-  """
-  if data_format is None:
-    data_format = (
-        'channels_first' if tf.test.is_built_with_cuda() else 'channels_last')
+#   Returns:
+#     The model function that takes in `inputs` and `is_training` and
+#     returns the output tensor of the ResNet model.
+#   """
+#   if data_format is None:
+#     data_format = (
+#         'channels_first' if tf.test.is_built_with_cuda() else 'channels_last')
 
-  def model(inputs, is_training):
-    """Constructs the ResNet model given the inputs."""
-    if data_format == 'channels_first':
-      # Convert the inputs from channels_last (NHWC) to channels_first (NCHW).
-      # This provides a large performance boost on GPU. See
-      # https://www.tensorflow.org/performance/performance_guide#data_formats
-      inputs = tf.transpose(inputs, [0, 3, 1, 2])
+#   def model(inputs, is_training):
+#     """Constructs the ResNet model given the inputs."""
+#     if data_format == 'channels_first':
+#       # Convert the inputs from channels_last (NHWC) to channels_first (NCHW).
+#       # This provides a large performance boost on GPU. See
+#       # https://www.tensorflow.org/performance/performance_guide#data_formats
+#       inputs = tf.transpose(inputs, [0, 3, 1, 2])
 
-    inputs = conv2d_fixed_padding(
-        inputs=inputs, filters=64, kernel_size=7, strides=2,
-        data_format=data_format)
-    inputs = tf.identity(inputs, 'initial_conv')
-    inputs = tf.layers.max_pooling2d(
-        inputs=inputs, pool_size=3, strides=2, padding='SAME',
-        data_format=data_format)
-    inputs = tf.identity(inputs, 'initial_max_pool')
+#     inputs = conv2d_fixed_padding(
+#         inputs=inputs, filters=64, kernel_size=7, strides=2,
+#         data_format=data_format)
+#     inputs = tf.identity(inputs, 'initial_conv')
+#     inputs = tf.layers.max_pooling2d(
+#         inputs=inputs, pool_size=3, strides=2, padding='SAME',
+#         data_format=data_format)
+#     inputs = tf.identity(inputs, 'initial_max_pool')
 
-    inputs = block_layer(
-        inputs=inputs, filters=64, block_fn=block_fn, blocks=layers[0],
-        strides=1, is_training=is_training, name='block_layer1',
-        data_format=data_format)
-    inputs = block_layer(
-        inputs=inputs, filters=128, block_fn=block_fn, blocks=layers[1],
-        strides=2, is_training=is_training, name='block_layer2',
-        data_format=data_format)
-    inputs = block_layer(
-        inputs=inputs, filters=256, block_fn=block_fn, blocks=layers[2],
-        strides=2, is_training=is_training, name='block_layer3',
-        data_format=data_format)
-    inputs = block_layer(
-        inputs=inputs, filters=512, block_fn=block_fn, blocks=layers[3],
-        strides=2, is_training=is_training, name='block_layer4',
-        data_format=data_format)
+#     inputs = block_layer(
+#         inputs=inputs, filters=64, block_fn=block_fn, blocks=layers[0],
+#         strides=1, is_training=is_training, name='block_layer1',
+#         data_format=data_format)
+#     inputs = block_layer(
+#         inputs=inputs, filters=128, block_fn=block_fn, blocks=layers[1],
+#         strides=2, is_training=is_training, name='block_layer2',
+#         data_format=data_format)
+#     inputs = block_layer(
+#         inputs=inputs, filters=256, block_fn=block_fn, blocks=layers[2],
+#         strides=2, is_training=is_training, name='block_layer3',
+#         data_format=data_format)
+#     inputs = block_layer(
+#         inputs=inputs, filters=512, block_fn=block_fn, blocks=layers[3],
+#         strides=2, is_training=is_training, name='block_layer4',
+#         data_format=data_format)
 
-    inputs = batch_norm(inputs, is_training, data_format)
-    inputs = tf.layers.average_pooling2d(
-        inputs=inputs, pool_size=7, strides=1, padding='VALID',
-        data_format=data_format)
-    inputs = tf.identity(inputs, 'final_avg_pool')
-    inputs = tf.reshape(inputs,
-                        [-1, 512 if block_fn is building_block else 2048])
-    inputs = tf.layers.dense(inputs=inputs, units=num_classes)
-    inputs = tf.identity(inputs, 'final_dense')
-    return inputs
+#     inputs = batch_norm(inputs, is_training, data_format)
+#     inputs = tf.layers.average_pooling2d(
+#         inputs=inputs, pool_size=7, strides=1, padding='VALID',
+#         data_format=data_format)
+#     inputs = tf.identity(inputs, 'final_avg_pool')
+#     inputs = tf.reshape(inputs,
+#                         [-1, 512 if block_fn is building_block else 2048])
+#     inputs = tf.layers.dense(inputs=inputs, units=num_classes)
+#     inputs = tf.identity(inputs, 'final_dense')
+#     return inputs
 
-  return model
+#   return model
 
 
-def imagenet_resnet_v2(resnet_size, num_classes, data_format=None):
-  """Returns the ResNet model for a given size and number of output classes."""
-  model_params = {
-      18: {'block': building_block, 'layers': [2, 2, 2, 2]},
-      34: {'block': building_block, 'layers': [3, 4, 6, 3]},
-      50: {'block': bottleneck_block, 'layers': [3, 4, 6, 3]},
-      101: {'block': bottleneck_block, 'layers': [3, 4, 23, 3]},
-      152: {'block': bottleneck_block, 'layers': [3, 8, 36, 3]},
-      200: {'block': bottleneck_block, 'layers': [3, 24, 36, 3]}
-  }
+# def imagenet_resnet_v2(resnet_size, num_classes, data_format=None):
+#   """Returns the ResNet model for a given size and number of output classes."""
+#   model_params = {
+#       18: {'block': building_block, 'layers': [2, 2, 2, 2]},
+#       34: {'block': building_block, 'layers': [3, 4, 6, 3]},
+#       50: {'block': bottleneck_block, 'layers': [3, 4, 6, 3]},
+#       101: {'block': bottleneck_block, 'layers': [3, 4, 23, 3]},
+#       152: {'block': bottleneck_block, 'layers': [3, 8, 36, 3]},
+#       200: {'block': bottleneck_block, 'layers': [3, 24, 36, 3]}
+#   }
 
-  if resnet_size not in model_params:
-    raise ValueError('Not a valid resnet_size:', resnet_size)
+#   if resnet_size not in model_params:
+#     raise ValueError('Not a valid resnet_size:', resnet_size)
 
-  params = model_params[resnet_size]
-  return imagenet_resnet_v2_generator(
-      params['block'], params['layers'], num_classes, data_format)
+#   params = model_params[resnet_size]
+#   return imagenet_resnet_v2_generator(
+#       params['block'], params['layers'], num_classes, data_format)
