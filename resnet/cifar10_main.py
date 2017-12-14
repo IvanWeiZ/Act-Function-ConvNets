@@ -48,6 +48,9 @@ parser.add_argument('--epochs_per_eval', type=int, default=1,
 parser.add_argument('--batch_size', type=int, default=128,
                     help='The number of images per batch.')
 
+parser.add_argument('--activation', type=str, default='relu',
+                    help='activation function swish,relu,lrelu,tanh,elu')
+
 parser.add_argument(
     '--data_format', type=str, default=None,
     choices=['channels_first', 'channels_last'],
@@ -186,7 +189,7 @@ def cifar10_model_fn(features, labels, mode, params):
   tf.summary.image('images', features, max_outputs=6)
 
   network = resnet_model.cifar10_resnet_v2_generator(
-      params['resnet_size'], _NUM_CLASSES, params['data_format'])
+      params['resnet_size'], _NUM_CLASSES, params['data_format'], FLAGS.activation)
 
   inputs = tf.reshape(features, [-1, _HEIGHT, _WIDTH, _DEPTH])
   logits = network(inputs, mode == tf.estimator.ModeKeys.TRAIN)

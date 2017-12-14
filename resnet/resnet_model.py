@@ -39,7 +39,7 @@ _BATCH_NORM_DECAY = 0.997
 _BATCH_NORM_EPSILON = 1e-5
 
 
-def batch_norm(inputs, is_training, data_format, activation=tf.nn.tanh):
+def batch_norm(inputs, is_training, data_format, activation=tf.nn.relu):
   """Performs a batch normalization followed by a ReLU."""
   # We set fused=True for a significant performance boost. See
   # https://www.tensorflow.org/performance/performance_guide#common_fused_ops
@@ -215,7 +215,7 @@ def block_layer(inputs, filters, block_fn, blocks, strides, is_training, name,
   return tf.identity(inputs, name)
 
 
-def cifar10_resnet_v2_generator(resnet_size, num_classes, data_format=None):
+def cifar10_resnet_v2_generator(resnet_size, num_classes, data_format=None, activation=None):
   """Generator for CIFAR-10 ResNet v2 models.
 
   Args:
@@ -235,6 +235,16 @@ def cifar10_resnet_v2_generator(resnet_size, num_classes, data_format=None):
     raise ValueError('resnet_size must be 6n + 2:', resnet_size)
 
   num_blocks = (resnet_size - 2) // 6
+  actFun=tf.nn.relu
+  if activation=='swish':
+    actFun=swish
+  elif activation=='elu':
+    actFun=tf.nn.elu
+  elif activation=='tanh':
+    actFun=tf.nn.tanh
+  elif activation=='lrelu':
+    actFun=tf.nn.leaky_relu
+
 
   if data_format is None:
     data_format = (
@@ -266,7 +276,7 @@ def cifar10_resnet_v2_generator(resnet_size, num_classes, data_format=None):
         strides=2, is_training=is_training, name='block_layer3',
         data_format=data_format)
 
-    inputs = batch_norm(inputs, is_training, data_format)
+    inputs = batch_norm(inputs, is_training, data_format,actFun)
     inputs = tf.layers.average_pooling2d(
         inputs=inputs, pool_size=8, strides=1, padding='VALID',
         data_format=data_format)
