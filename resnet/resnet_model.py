@@ -266,15 +266,15 @@ def cifar10_resnet_v2_generator(resnet_size, num_classes, data_format=None, acti
     inputs = block_layer(
         inputs=inputs, filters=16, block_fn=building_block, blocks=num_blocks,
         strides=1, is_training=is_training, name='block_layer1',
-        data_format=data_format,actfun)
+        data_format=data_format,actfun=actfun)
     inputs = block_layer(
         inputs=inputs, filters=32, block_fn=building_block, blocks=num_blocks,
         strides=2, is_training=is_training, name='block_layer2',
-        data_format=data_format,actfun)
+        data_format=data_format,actfun=actfun)
     inputs = block_layer(
         inputs=inputs, filters=64, block_fn=building_block, blocks=num_blocks,
         strides=2, is_training=is_training, name='block_layer3',
-        data_format=data_format,actfun)
+        data_format=data_format,actfun=actfun)
 
     inputs = batch_norm(inputs, is_training, data_format,actfun)
     inputs = tf.layers.average_pooling2d(
