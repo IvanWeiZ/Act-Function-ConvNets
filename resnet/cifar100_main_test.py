@@ -74,7 +74,7 @@ _NUM_IMAGES = {
 }
 
 
-def record_dataset(data_path):
+def record_dataset2(data_path):
   """Returns an input pipeline Dataset from `filenames`."""
   data_files = tf.gfile.Glob(data_path)
   file_queue = tf.train.string_input_producer(data_files, shuffle=True)
@@ -83,6 +83,10 @@ def record_dataset(data_path):
   _, value = reader.read(file_queue)
   return value 
 
+def record_dataset(data_path):
+  """Returns an input pipeline Dataset from `filenames`."""
+  record_bytes = _HEIGHT * _WIDTH * _DEPTH + 1
+  return tf.data.FixedLengthRecordDataset(data_path, record_bytes)
 
 def get_filenames(is_training, data_dir):
   """Returns a list of filenames."""
@@ -112,6 +116,7 @@ def parse_record(raw_record):
   
   record = tf.reshape(tf.decode_raw(raw_record, tf.uint8), [record_bytes]) 
   label = tf.cast(tf.slice(record, [label_offset], [label_bytes]), tf.int32)
+  label = tf.one_hot(label, num_classes)
   
   depth_major = tf.reshape(tf.slice(record, [label_offset + label_bytes], [image_bytes]), [depth, image_size, image_size])
 

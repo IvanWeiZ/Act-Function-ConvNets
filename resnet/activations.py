@@ -38,19 +38,39 @@ def swish(features):
   features = tf.convert_to_tensor(features, name="features")
   return features * tf.sigmoid(features)
 
+def _new_shape(op):
+    """Shape helper function for new and _new_grad function below."""
+        return [op.inputs[0].shape]
+
+
+
+@function.Defun(shape_func=_new_shape, func_name="new_grad", noinline=True)
+def _new_grad(features, grad):
+    """Gradient of new function defined below."""
+        if features >= 0:
+            activation_grad = 1.0
+        else:
+            activation_grad = (features + 1.0) * tf.exp(features)
+        return grad * activation_grad
+
+@function.Defun(
+                grad_func=_new_grad,
+                shape_func=_new_shape,
+                func_name="new",
+                noinline=True)
 def new(features):
     # pylint: disable=g-doc-args
     """Computes the New activation function we created.
-    Args:
-    features: A Tensor representing preactivation values.
-    name: A name for the operation (optional).
-    Returns:
-    The activation value.
-    """
-    # pylint: enable=g-doc-args
-    features = tf.convert_to_tensor(features, name="features")
-    if features >= 0:
-        y = features
-    else:
-        y = features * tf.exp(features)
-    return y
+        Args:
+        features: A Tensor representing preactivation values.
+        name: A name for the operation (optional).
+        Returns:
+        The activation value.
+        """
+            # pylint: enable=g-doc-args
+            features = tf.convert_to_tensor(features, name="features")
+            if features >= 0:
+                y = features
+            else:
+                y = features * tf.exp(features)
+            return y
