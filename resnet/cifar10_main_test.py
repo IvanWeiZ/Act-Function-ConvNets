@@ -124,6 +124,9 @@ def parse_record(raw_record):
   # float32.
   image = tf.cast(tf.transpose(depth_major, [1, 2, 0]), tf.float32)
 
+  print(image.shape, label.shape)
+  exit()
+
   return image, label
 
 

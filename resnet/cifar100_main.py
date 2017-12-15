@@ -128,8 +128,7 @@ def parse_record(raw_record):
   # Convert from [depth, height, width] to [height, width, depth], and cast as
   # float32.
   image = tf.cast(tf.transpose(depth_major, [1, 2, 0]), tf.float32)
-  print(image.shape)
-  exit()
+  print(image.shape, label.shape)
 
   return image, label
 
@@ -198,6 +197,8 @@ def cifar10_model_fn(features, labels, mode, params):
   network = resnet_model.cifar10_resnet_v2_generator(
       params['resnet_size'], _NUM_CLASSES, params['data_format'])
 
+  print(features.shape)
+  exit()
   inputs = tf.reshape(features, [-1, _HEIGHT, _WIDTH, _DEPTH])
   logits = network(inputs, mode == tf.estimator.ModeKeys.TRAIN)
 
