@@ -47,6 +47,7 @@ def _new_shape(op):
 @function.Defun(shape_func=_new_shape, func_name="new_grad", noinline=True)
 def _new_grad(features, grad):
   """Gradient of new function defined below."""
+  print(123)
   print(features)
   if tf.greater_equal(features, 0, name=None):
     activation_grad = 1.0
@@ -66,6 +67,7 @@ def new(features):
     The activation value.
     """
   # pylint: enable=g-doc-args
+  print(123)
   print(features)
   features = tf.convert_to_tensor(features, name="features")
   if tf.greater_equal(features, 0, name=None):
