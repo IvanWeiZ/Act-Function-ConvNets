@@ -42,7 +42,7 @@ parser.add_argument('--resnet_size', type=int, default=32,
 parser.add_argument('--train_epochs', type=int, default=160,
                     help='The number of epochs to train.')
 
-parser.add_argument('--epochs_per_eval', type=int, default=5,
+parser.add_argument('--epochs_per_eval', type=int, default=1,
                     help='The number of epochs to run in between evaluations.')
 
 parser.add_argument('--batch_size', type=int, default=128,
