@@ -209,3 +209,4 @@ compressed/
 *.out
 models/
 test.ny
+*.swo
