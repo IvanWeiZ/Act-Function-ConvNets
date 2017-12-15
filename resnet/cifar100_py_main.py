@@ -23,6 +23,7 @@ import os
 import sys
 import timeit
 
+import numpy as np
 import tensorflow as tf
 
 import resnet_model
@@ -31,7 +32,7 @@ parser = argparse.ArgumentParser()
 
 # Basic model parameters.
 parser.add_argument('--data_dir', type=str, default=os.path.join(os.path.dirname(__file__), '../datasets'),
-                    help='The path to the CIFAR-100 data directory.')
+                    help='The path to the CIFAR-10 data directory.')
 
 parser.add_argument('--model_dir', type=str, default='/tmp/cifar100_model',
                     help='The directory where the model will be stored.')
@@ -60,6 +61,7 @@ _HEIGHT = 32
 _WIDTH = 32
 _DEPTH = 3
 _NUM_CLASSES = 100
+_IMG_SIZE = 3072
 #_NUM_DATA_FILES = 5
 
 # We use a weight decay of 0.0002, which performs better than the 0.0001 that
@@ -73,59 +75,69 @@ _NUM_IMAGES = {
 }
 
 
-def record_dataset(filenames):
+def record_dataset(filename):
   """Returns an input pipeline Dataset from `filenames`."""
-  record_bytes = _HEIGHT * _WIDTH * _DEPTH + 2
-  return tf.data.FixedLengthRecordDataset(filenames, record_bytes)
+  import cPickle
+  with open(filename, 'rb') as fo:
+    data_dict = cPickle.load(fo)
+  
+  coarse_labels = np.array(data_dict['coarse_labels'])
+  fine_labels = np.array(data_dict['fine_labels'])
+  data = np.array(data_dict['data'])
+
+  dataset = np.hstack([coarse_labels.reshape((len(coarse_labels), 1)), fine_labels.reshape((len(fine_labels), 1)), data])
+
+  return dataset
+  #return tf.data.FixedLengthRecordDataset(filenames, record_bytes)
 
 
 def get_filenames(is_training, data_dir):
   """Returns a list of filenames."""
-  data_dir = os.path.join(data_dir, 'cifar-100-binary')
+  data_dir = os.path.join(data_dir, 'cifar-100-python')
 
   assert os.path.exists(data_dir), (
-      'Run cifar100_download_and_extract.py first to download and extract the '
-      'CIFAR-100 data.')
+      'Run cifar10_download_and_extract.py first to download and extract the '
+      'CIFAR-10 data.')
 
   if is_training:
-    return [
-        os.path.join(data_dir, 'train.bin')
-    ]
+    return os.path.join(data_dir, 'train')
   else:
-    return [os.path.join(data_dir, 'test.bin')]
+    return os.path.join(data_dir, 'test')
 
 
-def parse_record(raw_record):
-  """Parse CIFAR-100 image and label from a raw record."""
+def parse_record(record_array):
+  """Parse CIFAR-10 image and label from a raw record."""
   # Every record consists of a label followed by the image, with a fixed number
   # of bytes for each.
-  label_bytes = 1
-  label_offset = 1
+  label_bytes = 2
   image_bytes = _HEIGHT * _WIDTH * _DEPTH
-  record_bytes = label_bytes + label_offset + image_bytes
+  record_bytes = label_bytes + image_bytes
 
-  assert(image_bytes == 3072)
-  assert(record_bytes == 3074)
+  image_array = record_array[0:image_bytes]
+  label_array = record_array[-label_bytes:]
+
+  assert(image_array.size == image_bytes)
+  assert(label_array.size == label_bytes)
 
   # Convert bytes to a vector of uint8 that is record_bytes long.
-  record_vector = tf.decode_raw(raw_record, tf.uint8)
-  record_vector = tf.reshape(record_vector, [record_bytes])
+  #record_vector = tf.decode_raw(raw_record, tf.uint8)
+  image_vector = tf.convert_to_tensor(image_array)
+  image_vector = tf.cast(image_vector, tf.uint8)
 
   # The first byte represents the label, which we convert from uint8 to int32
   # and then to one-hot.
-  label = tf.cast(tf.slice(record_vector, [label_offset], [label_bytes]), tf.int32)
-  label = tf.squeeze(label)
+  label = tf.convert_to_tensor(label_array)
+  label = tf.cast(label, tf.int32)
   label = tf.one_hot(label, _NUM_CLASSES)
 
   # The remaining bytes after the label represent the image, which we reshape
   # from [depth * height * width] to [depth, height, width].
   depth_major = tf.reshape(
-      tf.slice(record_vector, [label_bytes], [image_bytes]), [_DEPTH, _HEIGHT, _WIDTH])
+      image_vector, [_DEPTH, _HEIGHT, _WIDTH])
 
   # Convert from [depth, height, width] to [height, width, depth], and cast as
   # float32.
   image = tf.cast(tf.transpose(depth_major, [1, 2, 0]), tf.float32)
-  print(image.shape, label.shape)
 
   return image, label
 
@@ -161,14 +173,15 @@ def input_fn(is_training, data_dir, batch_size, num_epochs=1):
     A tuple of images and labels.
   """
   dataset = record_dataset(get_filenames(is_training, data_dir))
+  print(dataset.shape)
 
   if is_training:
     # When choosing shuffle buffer sizes, larger sizes result in better
     # randomness, while smaller sizes have better performance. Because CIFAR-10
     # is a relatively small dataset, we choose to shuffle the full epoch.
-    dataset = dataset.shuffle(buffer_size=_NUM_IMAGES['train'])
+    np.random.shuffle(dataset) 
 
-  dataset = dataset.map(parse_record)
+  dataset = map(parse_record, dataset) 
   dataset = dataset.map(
       lambda image, label: (preprocess_image(image, is_training), label))
 
@@ -190,9 +203,6 @@ def input_fn(is_training, data_dir, batch_size, num_epochs=1):
 def cifar10_model_fn(features, labels, mode, params):
   """Model function for CIFAR-10."""
   tf.summary.image('images', features, max_outputs=6)
-  s = tf.size(features)
-  s = tf.Print(s, [s])
-  result = s + 2
 
   network = resnet_model.cifar10_resnet_v2_generator(
       params['resnet_size'], _NUM_CLASSES, params['data_format'])

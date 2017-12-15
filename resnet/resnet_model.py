@@ -34,6 +34,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 from activations import swish
+from activations import new
 
 _BATCH_NORM_DECAY = 0.997
 _BATCH_NORM_EPSILON = 1e-5
@@ -238,12 +239,15 @@ def cifar10_resnet_v2_generator(resnet_size, num_classes, data_format=None, acti
   actfun=tf.nn.relu
   if activation=='swish':
     actfun=swish
+  elif activation=='new':
+    actfun=new
   elif activation=='elu':
     actfun=tf.nn.elu
   elif activation=='tanh':
     actfun=tf.nn.tanh
   elif activation=='lrelu':
     actfun=tf.nn.leaky_relu
+
 
   # print("-----cifar10_resnet_v2_generator",actfun)
   if data_format is None:

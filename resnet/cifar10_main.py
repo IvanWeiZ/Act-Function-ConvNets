@@ -36,10 +36,10 @@ parser.add_argument('--data_dir', type=str, default=os.path.join(os.path.dirname
 parser.add_argument('--model_dir', type=str, default='/tmp/cifar10_model',
                     help='The directory where the model will be stored.')
 
-parser.add_argument('--resnet_size', type=int, default=14,
+parser.add_argument('--resnet_size', type=int, default=32,
                     help='The size of the ResNet model to use.')
 
-parser.add_argument('--train_epochs', type=int, default=50,
+parser.add_argument('--train_epochs', type=int, default=160,
                     help='The number of epochs to train.')
 
 parser.add_argument('--epochs_per_eval', type=int, default=1,
@@ -222,8 +222,8 @@ def cifar10_model_fn(features, labels, mode, params):
     global_step = tf.train.get_or_create_global_step()
 
     # Multiply the learning rate by 0.1 at 100, 150, and 200 epochs.
-    boundaries = [int(batches_per_epoch * epoch) for epoch in [100, 150, 200]]
-    values = [initial_learning_rate * decay for decay in [1, 0.1, 0.01, 0.001]]
+    boundaries = [int(batches_per_epoch * epoch) for epoch in [80, 120]]
+    values = [initial_learning_rate * decay for decay in [1, 0.1, 0.01]]
     learning_rate = tf.train.piecewise_constant(
         tf.cast(global_step, tf.int32), boundaries, values)
 
