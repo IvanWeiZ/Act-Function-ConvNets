@@ -22,10 +22,10 @@ do
 	logpath=$1"/log_cifar10_resnet-""$2""_train_epochs-""$3""_batch_size-""$4""_activation-""$func"
 
 	echo "Running--------------" python cifar10_main.py --model_dir $modelpath --resnet_size "$resnet_size" \
-	 --train_epochs "$train_epochs" --batch_size "$batch_size" --activation "$func"
+	 --train_epochs "$train_epochs" --batch_size "$batch_size" --activation "$func" --data_format channels_first
 
 	time python cifar10_main.py --model_dir $modelpath --resnet_size "$resnet_size" \
-	 --train_epochs "$train_epochs" --batch_size "$batch_size" --activation "$func" >> "$logpath"
+	 --train_epochs "$train_epochs" --batch_size "$batch_size" --activation "$func" --data_format channels_first >> "$logpath"
 done
 
 
