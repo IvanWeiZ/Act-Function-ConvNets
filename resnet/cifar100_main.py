@@ -26,6 +26,7 @@ import timeit
 import tensorflow as tf
 
 import resnet_model
+from cifar_input import build_input
 
 parser = argparse.ArgumentParser()
 
@@ -193,12 +194,13 @@ def input_fn(is_training, data_dir, batch_size, num_epochs=1):
 def cifar10_model_fn(features, labels, mode, params):
   """Model function for CIFAR-10."""
   tf.summary.image('images', features, max_outputs=6)
+  s = tf.size(features)
+  s = tf.Print(s, [s])
+  result = s + 2
 
   network = resnet_model.cifar10_resnet_v2_generator(
       params['resnet_size'], _NUM_CLASSES, params['data_format'])
 
-  print(features.shape)
-  exit()
   inputs = tf.reshape(features, [-1, _HEIGHT, _WIDTH, _DEPTH])
   logits = network(inputs, mode == tf.estimator.ModeKeys.TRAIN)
 
@@ -291,8 +293,8 @@ def main(unused_argv):
         tensors=tensors_to_log, every_n_iter=100)
 
     cifar_classifier.train(
-        input_fn=lambda: input_fn(
-            True, FLAGS.data_dir, FLAGS.batch_size, FLAGS.epochs_per_eval),
+        input_fn=lambda: build_input(
+            'cifar100', os.path.join(FLAGS.data_dir, 'cifar-100-binary/train.bin'), FLAGS.batch_size, 'train'),
         hooks=[logging_hook])
 
     # Evaluate the model and print results
