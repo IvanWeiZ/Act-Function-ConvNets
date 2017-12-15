@@ -60,7 +60,7 @@ def _new_shape(op):
 @function.Defun(shape_func=_new_shape, func_name="new_grad", noinline=True)
 def _new_grad(features, grad):
   """Gradient of new function defined below."""
-  activation_grad=tf.minimum(features,features*tf.exp(-tf.abs(features)))
+  activation_grad=tf.minimum(features*tf.exp(-tf.abs(features)),features)
   return grad * activation_grad
 
 @function.Defun(
