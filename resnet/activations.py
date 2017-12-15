@@ -48,16 +48,12 @@ def _new_shape(op):
 def _new_grad(features, grad):
     """Gradient of new function defined below."""
   if features >= 0:
-      activation_grad = 1.0
+    activation_grad = 1.0
   else:
-      activation_grad = (features + 1.0) * tf.exp(features)
+    activation_grad = (features + 1.0) * tf.exp(features)
   return grad * activation_grad
 
-@function.Defun(
-                grad_func=_new_grad,
-                shape_func=_new_shape,
-                func_name="new",
-                noinline=True)
+@function.Defun(grad_func=_new_grad, shape_func=_new_shape, func_name="new", noinline=True)
 def new(features):
     # pylint: disable=g-doc-args
     """Computes the New activation function we created.
@@ -70,7 +66,7 @@ def new(features):
   # pylint: enable=g-doc-args
   features = tf.convert_to_tensor(features, name="features")
   if features >= 0:
-      y = features
+    y = features 
   else:
-      y = features * tf.exp(features)
+    y = features * tf.exp(features)
   return y
