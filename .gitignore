@@ -209,3 +209,5 @@ compressed/
 *.out
 models/
 .nfs*
+test.ny
+*.swo

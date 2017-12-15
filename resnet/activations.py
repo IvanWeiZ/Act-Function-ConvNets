@@ -47,49 +47,39 @@ def _new_shape(op):
 @function.Defun(shape_func=_new_shape, func_name="new_grad", noinline=True)
 def _new_grad(features, grad):
   """Gradient of new function defined below."""
-  print(123)
-  print(features)
-  # if tf.greater_equal(features, 0, name=None):
-  activation_grad = 1.0
-  # else:
-  #   activation_grad = (features + 1.0) * tf.exp(features)
-  return grad * activation_grad
+
 
 @function.Defun(grad_func=_new_grad, shape_func=_new_shape, func_name="new", noinline=True)
 
 def _new_shape(op):
-    """Shape helper function for new and _new_grad function below."""
-        return [op.inputs[0].shape]
+  """Shape helper function for new and _new_grad function below."""
+  return [op.inputs[0].shape]
 
 
 
 @function.Defun(shape_func=_new_shape, func_name="new_grad", noinline=True)
 def _new_grad(features, grad):
-    """Gradient of new function defined below."""
-        if tf.greater_equal(features, tf.zeros(tf.shape(features))):
-            activation_grad = 1.0
-        else:
-            activation_grad = (features + 1.0) * tf.exp(features)
-        return grad * activation_grad
+  """Gradient of new function defined below."""
+  activation_grad=(tf.minimum(features * tf.exp(-tf.abs(features)),features))
+  return grad * activation_grad
 
 @function.Defun(
-                grad_func=_new_grad,
-                shape_func=_new_shape,
-                func_name="new",
-                noinline=True)
+  grad_func=_new_grad,
+  shape_func=_new_shape,
+  func_name="new",
+  noinline=True)
+
+
 def new(features):
-    # pylint: disable=g-doc-args
-    """Computes the New activation function we created.
-        Args:
-        features: A Tensor representing preactivation values.
-        name: A name for the operation (optional).
-        Returns:
-        The activation value.
-        """
-            # pylint: enable=g-doc-args
-            features = tf.convert_to_tensor(features, name="features")
-            if tf.greater_equal(features, tf.zeros(tf.shape(features))):
-                y = features
-            else:
-                y = features * tf.exp(features)
-            return y
+  # pylint: disable=g-doc-args
+  """Computes the New activation function we created.
+  Args:
+  features: A Tensor representing preactivation values.
+  name: A name for the operation (optional).
+  Returns:
+  The activation value.
+  """
+  # pylint: enable=g-doc-args
+  features = tf.convert_to_tensor(features, name="features")
+  return tf.maximum(features,features * tf.exp(-tf.abs(features)))
+

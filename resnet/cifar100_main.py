@@ -26,7 +26,6 @@ import timeit
 import tensorflow as tf
 
 import resnet_model
-from cifar_input import build_input
 
 parser = argparse.ArgumentParser()
 
@@ -76,7 +75,7 @@ _NUM_IMAGES = {
 
 def record_dataset(filenames):
   """Returns an input pipeline Dataset from `filenames`."""
-  record_bytes = _HEIGHT * _WIDTH * _DEPTH + 1
+  record_bytes = _HEIGHT * _WIDTH * _DEPTH + 2
   return tf.data.FixedLengthRecordDataset(filenames, record_bytes)
 
 
@@ -100,10 +99,10 @@ def parse_record(raw_record):
   """Parse CIFAR-100 image and label from a raw record."""
   # Every record consists of a label followed by the image, with a fixed number
   # of bytes for each.
-  label_bytes = 2
-  #label_offset = 1
+  label_bytes = 1
+  label_offset = 1
   image_bytes = _HEIGHT * _WIDTH * _DEPTH
-  record_bytes = label_bytes + image_bytes
+  record_bytes = label_bytes + label_offset + image_bytes
 
   assert(image_bytes == 3072)
   assert(record_bytes == 3074)
@@ -114,11 +113,8 @@ def parse_record(raw_record):
 
   # The first byte represents the label, which we convert from uint8 to int32
   # and then to one-hot.
-  #label = tf.cast(tf.slice(record_vector, [0], [label_bytes]), tf.int32)
-  label1 = tf.reshape(tf.cast(record_vector[0], tf.int32), [])
-  label2 = tf.reshape(tf.cast(record_vector[1], tf.int32), [])
-  label = 100*label1 + label2
-  #label = tf.cast(record_vector[0:-2], tf.int32)
+  label = tf.cast(tf.slice(record_vector, [label_offset], [label_bytes]), tf.int32)
+  label = tf.squeeze(label)
   label = tf.one_hot(label, _NUM_CLASSES)
 
   # The remaining bytes after the label represent the image, which we reshape
@@ -293,13 +289,13 @@ def main(unused_argv):
         tensors=tensors_to_log, every_n_iter=100)
 
     cifar_classifier.train(
-        input_fn=lambda: build_input(
-            'cifar100', os.path.join(FLAGS.data_dir, 'cifar-100-binary/train.bin'), FLAGS.batch_size, 'train'),
+        input_fn=lambda: input_fn(
+            True, FLAGS.data_dir, FLAGS.batch_size, FLAGS.epochs_per_eval),
         hooks=[logging_hook])
 
     # Evaluate the model and print results
     eval_results = cifar_classifier.evaluate(
-        input_fn=lambda: build_input('cifar100', os.path.join(FLAGS.data_dir, 'cifar-100-binary/test.bin'), FLAGS.batch_size, 'eval'))
+        input_fn=lambda: input_fn(False, FLAGS.data_dir, FLAGS.batch_size))
     print(eval_results)
 
 
