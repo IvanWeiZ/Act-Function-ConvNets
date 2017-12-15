@@ -74,4 +74,4 @@ def new(features):
   y = features 
   #else:
   #  y = features * tf.exp(features)
-  #return y
+  return y
