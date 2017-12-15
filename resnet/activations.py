@@ -41,16 +41,16 @@ def swish(features):
 def new(features):
     # pylint: disable=g-doc-args
     """Computes the New activation function we created.
-        Args:
-        features: A Tensor representing preactivation values.
-        name: A name for the operation (optional).
-        Returns:
-        The activation value.
-        """
-            # pylint: enable=g-doc-args
-            features = tf.convert_to_tensor(features, name="features")
-            if features >= 0:
-                y = features
-            else:
-                y = features * tf.exp(features)
-            return y
+    Args:
+    features: A Tensor representing preactivation values.
+    name: A name for the operation (optional).
+    Returns:
+    The activation value.
+    """
+    # pylint: enable=g-doc-args
+    features = tf.convert_to_tensor(features, name="features")
+    if features >= 0:
+        y = features
+    else:
+        y = features * tf.exp(features)
+    return y
