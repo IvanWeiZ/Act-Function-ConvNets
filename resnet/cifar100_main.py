@@ -299,7 +299,7 @@ def main(unused_argv):
 
     # Evaluate the model and print results
     eval_results = cifar_classifier.evaluate(
-        input_fn=lambda: input_fn(False, FLAGS.data_dir, FLAGS.batch_size))
+        input_fn=lambda: build_input('cifar100', os.path.join(FLAGS.data_dir, 'cifar-100-binary/test.bin'), FLAGS.batch_size, 'eval'))
     print(eval_results)
 
 
