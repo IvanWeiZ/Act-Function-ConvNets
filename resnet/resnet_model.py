@@ -34,7 +34,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 from activations import swish
-from activations import new
+#from activations import new
 
 _BATCH_NORM_DECAY = 0.997
 _BATCH_NORM_EPSILON = 1e-5
