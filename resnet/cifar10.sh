@@ -10,7 +10,7 @@ activation=$5
 
 if [ "$activation" == "all" ];
 	then 
-		declare -a functions=("relu" "lrelu" "tanh" "elu" "swish")
+		declare -a functions=("relu" "lrelu" "tanh" "elu" "swish" "new")
 	else
 		declare -a functions=("$activation")
 fi
