@@ -77,9 +77,9 @@ def resnet(depth, width, num_classes,activation):
     })
 
     def block(x, params, stats, base, mode, stride):
-        o1 = actfun(batch_norm(x, params, stats, base + '.bn0', mode), inplace=True)
+        o1 = actfun(batch_norm(x, params, stats, base + '.bn0', mode))
         y = F.conv2d(o1, params[base + '.conv0'], stride=stride, padding=1)
-        o2 = actfun(batch_norm(y, params, stats, base + '.bn1', mode), inplace=True)
+        o2 = actfun(batch_norm(y, params, stats, base + '.bn1', mode))
         z = F.conv2d(o2, params[base + '.conv1'], stride=1, padding=1)
         if base + '.convdim' in params:
             return z + F.conv2d(o1, params[base + '.convdim'], stride=stride)
