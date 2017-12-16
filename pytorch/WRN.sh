@@ -26,11 +26,11 @@ do
 	modelpath=$1"/""$5""_WRN-""$2""-""$3""_batch_size-""$4""_activation-""$func"
 
 	echo "Running--------------" python main.py --save $modelpath --depth "$depth" \
-	 --width "$width" --dataset "$dataset" --dataroot "$dataroot" --activation "$activation" \
+	 --width "$width" --dataset "$dataset" --dataroot "$dataroot" --activation "$func" \
 	 --batchSize "$batchSize" --cuda
 
 	time python main.py --save $modelpath --depth "$depth" \
-	 --width "$width" --dataset "$dataset" --dataroot "$dataroot" --activation "$activation" \
+	 --width "$width" --dataset "$dataset" --dataroot "$dataroot" --activation "$func" \
 	 --batchSize "$batchSize" --cuda
 done
 
