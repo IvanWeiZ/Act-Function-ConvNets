@@ -13,7 +13,7 @@ class Swish(Module):
         return self.__class__.__name__ + ' ()'
 
 def swish(input):
-    eturn (input * torch.sigmoid(input))
+    return (input * torch.sigmoid(input))
 
 class New(Module):
     def forward(self, input):
@@ -23,7 +23,7 @@ class New(Module):
         return self.__class__.__name__ + ' ()'
 
 def new(input):
-    return input+F.relu(x * torch.exp(-torch.abs(input)) - input)
+    return (input+F.relu(x * torch.exp(-torch.abs(input)) - input))
 
 def resnet(depth, width, num_classes,activation):
     assert (depth - 4) % 6 == 0, 'depth should be 6n+4'
