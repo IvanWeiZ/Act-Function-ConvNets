@@ -88,7 +88,9 @@ def main():
     opt = parser.parse_args()
     print('parsed options:', vars(opt))
     epoch_step = json.loads(opt.epoch_step)
-    num_classes = 10 if opt.dataset == 'CIFAR10' else 100
+    num_classes = 10 
+    if opt.dataset == 'CIFAR100':
+        num_classes=100
 
     os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu_id
     if torch.cuda.is_available():
