@@ -38,6 +38,14 @@ from activations import new
 
 _BATCH_NORM_DECAY = 0.997
 _BATCH_NORM_EPSILON = 1e-5
+_ACTIVATIONS = {
+    None : None,
+    'relu' : tf.nn.relu,
+    'elu' : tf.nn.elu,
+    'lrelu' : tf.nn.leaky_relu,
+    'tanh' : tf.nn.tanh,
+    'swish' : swish,
+    'new' : new }
 
 def batch_norm(inputs, is_training, data_format,actfun):
   """Performs a batch normalization followed by a ReLU."""
@@ -236,20 +244,7 @@ def cifar10_resnet_v2_generator(resnet_size, num_classes, data_format=None, acti
     raise ValueError('resnet_size must be 6n + 2:', resnet_size)
   # print("---cifar10_resnet_v2_generator__Str",activation)
   num_blocks = (resnet_size - 2) // 6
-  actfun=None
-  if activation=='swish':
-    actfun=swish
-  elif activation=='new':
-    actfun=new
-  elif activation=='elu':
-    actfun=tf.nn.elu
-  elif activation=='tanh':
-    actfun=tf.nn.tanh
-  elif activation=='lrelu':
-    actfun=tf.nn.leaky_relu
-  elif activation=='relu':
-    actfun=tf.nn.relu
-
+  actfun = _ACTIVATIONS[activation] 
 
   # print("-----cifar10_resnet_v2_generator",actfun)
   if data_format is None:
