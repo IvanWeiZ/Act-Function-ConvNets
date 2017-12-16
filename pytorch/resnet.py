@@ -1,13 +1,73 @@
 import torch
 import torch.nn.functional as F
+from torch.nn.modules.module import Module
 from utils import conv_params, linear_params, bnparams, bnstats, \
         flatten_params, flatten_stats, batch_norm
 
 
-def resnet(depth, width, num_classes):
+class Swish(Module):
+    """Implementation of Swish: a Self-Gated Activation Function
+        Swish activation is simply f(x)=x⋅sigmoid(x)
+        Paper: https://arxiv.org/abs/1710.05941
+    Shape:
+        - Input: :math:`(N, *)` where `*` means, any number of additional
+          dimensions
+        - Output: :math:`(N, *)`, same shape as the input
+    Examples::
+        >>> m = nn.Swish()
+        >>> input = autograd.Variable(torch.randn(2))
+        >>> print(input)
+        >>> print(m(input))
+    """
+
+    def forward(self, input):
+        return (input * torch.sigmoid(input))
+
+    def __repr__(self):
+        return self.__class__.__name__ + ' ()'
+
+def swish(input):
+    eturn (input * torch.sigmoid(input))
+
+class New(Module):
+    """Implementation of new
+    Shape:
+        - Input: :math:`(N, *)` where `*` means, any number of additional
+          dimensions
+        - Output: :math:`(N, *)`, same shape as the input
+    Examples::
+        >>> m = nn.Swish()
+        >>> input = autograd.Variable(torch.randn(2))
+        >>> print(input)
+        >>> print(m(input))
+    """
+
+    def forward(self, input):
+        return input+F.relu(x * torch.exp(-torch.abs(input)) - input)
+
+    def __repr__(self):
+        return self.__class__.__name__ + ' ()'
+
+def new(input):
+    return input+F.relu(x * torch.exp(-torch.abs(input)) - input)
+
+def resnet(depth, width, num_classes,activation):
     assert (depth - 4) % 6 == 0, 'depth should be 6n+4'
     n = (depth - 4) // 6
     widths = torch.Tensor([16, 32, 64]).mul(width).int()
+    actfun=None
+    if activation=='swish':
+        actfun=swish
+    elif activation=='new':
+        actfun=new
+    elif activation=='elu':
+        actfun=F.elu
+    elif activation=='tanh':
+        actfun=F.tanh
+    elif activation=='lrelu':
+        actfun=F.leaky_relu
+    elif activation=='lrelu':
+        actfun=F.relu
 
     def gen_block_params(ni, no):
         return {
@@ -43,9 +103,9 @@ def resnet(depth, width, num_classes):
     })
 
     def block(x, params, stats, base, mode, stride):
-        o1 = F.relu(batch_norm(x, params, stats, base + '.bn0', mode), inplace=True)
+        o1 = actfun(batch_norm(x, params, stats, base + '.bn0', mode), inplace=True)
         y = F.conv2d(o1, params[base + '.conv0'], stride=stride, padding=1)
-        o2 = F.relu(batch_norm(y, params, stats, base + '.bn1', mode), inplace=True)
+        o2 = actfun(batch_norm(y, params, stats, base + '.bn1', mode), inplace=True)
         z = F.conv2d(o2, params[base + '.conv1'], stride=1, padding=1)
         if base + '.convdim' in params:
             return z + F.conv2d(o1, params[base + '.convdim'], stride=stride)
@@ -62,7 +122,7 @@ def resnet(depth, width, num_classes):
         g0 = group(x, params, stats, 'group0', mode, 1)
         g1 = group(g0, params, stats, 'group1', mode, 2)
         g2 = group(g1, params, stats, 'group2', mode, 2)
-        o = F.relu(batch_norm(g2, params, stats, 'bn', mode))
+        o = actfun(batch_norm(g2, params, stats, 'bn', mode))
         o = F.avg_pool2d(o, 8, 1, 0)
         o = o.view(o.size(0), -1)
         o = F.linear(o, params['fc.weight'], params['fc.bias'])

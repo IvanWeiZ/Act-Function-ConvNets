@@ -41,6 +41,7 @@ parser.add_argument('--groups', default=1, type=int)
 parser.add_argument('--nthread', default=4, type=int)
 
 # Training options
+parser.add_argument('--activation', type=str)
 parser.add_argument('--batchSize', default=128, type=int)
 parser.add_argument('--lr', default=0.1, type=float)
 parser.add_argument('--epochs', default=200, type=int, metavar='N',
@@ -106,8 +107,8 @@ def main():
     train_loader = create_iterator(True)
     test_loader = create_iterator(False)
 
-    f, params, stats = resnet(opt.depth, opt.width, num_classes)
-
+    f, params, stats = resnet(opt.depth, opt.width, num_classes,opt.activation)
+    print("Activation function is ",opt.activation)
     def create_optimizer(opt, lr):
         print('creating optimizer with lr = ', lr)
         return SGD(params.values(), lr, 0.9, weight_decay=opt.weightDecay)
