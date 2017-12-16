@@ -40,7 +40,7 @@ def resnet(depth, width, num_classes,activation):
         actfun=F.tanh
     elif activation=='lrelu':
         actfun=F.leaky_relu
-    elif activation=='lrelu':
+    elif activation=='relu':
         actfun=F.relu
 
     def gen_block_params(ni, no):
