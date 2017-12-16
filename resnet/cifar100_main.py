@@ -33,13 +33,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', type=str, default=os.path.join(os.path.dirname(__file__), '../datasets'),
                     help='The path to the CIFAR-100 data directory.')
 
-parser.add_argument('--model_dir', type=str, default='/tmp/cifar100_model',
+parser.add_argument('--model_dir', type=str, default='~/cifar100_model',
                     help='The directory where the model will be stored.')
 
-parser.add_argument('--resnet_size', type=int, default=14,
+parser.add_argument('--resnet_size', type=int, default=32,
                     help='The size of the ResNet model to use.')
 
-parser.add_argument('--train_epochs', type=int, default=50,
+parser.add_argument('--train_epochs', type=int, default=160,
                     help='The number of epochs to train.')
 
 parser.add_argument('--epochs_per_eval', type=int, default=1,
@@ -47,6 +47,8 @@ parser.add_argument('--epochs_per_eval', type=int, default=1,
 
 parser.add_argument('--batch_size', type=int, default=128,
                     help='The number of images per batch.')
+
+parser.add_argument('--activation', type=str, default='relu', help='swish/relu/elu/lrelu/tanh/new')
 
 parser.add_argument(
     '--data_format', type=str, default=None,
@@ -195,7 +197,7 @@ def cifar10_model_fn(features, labels, mode, params):
   result = s + 2
 
   network = resnet_model.cifar10_resnet_v2_generator(
-      params['resnet_size'], _NUM_CLASSES, params['data_format'])
+      params['resnet_size'], _NUM_CLASSES, params['data_format'], FLAGS.activation)
 
   inputs = tf.reshape(features, [-1, _HEIGHT, _WIDTH, _DEPTH])
   logits = network(inputs, mode == tf.estimator.ModeKeys.TRAIN)
@@ -228,8 +230,8 @@ def cifar10_model_fn(features, labels, mode, params):
     global_step = tf.train.get_or_create_global_step()
 
     # Multiply the learning rate by 0.1 at 100, 150, and 200 epochs.
-    boundaries = [int(batches_per_epoch * epoch) for epoch in [100, 150, 200]]
-    values = [initial_learning_rate * decay for decay in [1, 0.1, 0.01, 0.001]]
+    boundaries = [int(batches_per_epoch * epoch) for epoch in [80, 120]]
+    values = [initial_learning_rate * decay for decay in [1, 0.1, 0.01]]
     learning_rate = tf.train.piecewise_constant(
         tf.cast(global_step, tf.int32), boundaries, values)
 

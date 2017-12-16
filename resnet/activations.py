@@ -42,22 +42,15 @@ def _new_shape(op):
   """Shape helper function for new and _new_grad function below."""
   return [op.inputs[0].shape]
 
-
-
-@function.Defun(shape_func=_new_shape, func_name="new_grad", noinline=True)
-def _new_grad(features, grad):
-  """Gradient of new function defined below."""
-
-
-@function.Defun(grad_func=_new_grad, shape_func=_new_shape, func_name="new", noinline=True)
-def _new_shape(op):
-  """Shape helper function for new and _new_grad function below."""
-  return [op.inputs[0].shape]
+#@function.Defun(grad_func=_new_grad, shape_func=_new_shape, func_name="new", noinline=True)
+#def _new_shape(op):
+#  """Shape helper function for new and _new_grad function below."""
+#  return [op.inputs[0].shape]
 
 @function.Defun(shape_func=_new_shape, func_name="new_grad", noinline=True)
 def _new_grad(features, grad):
   """Gradient of new function defined below."""
-  activation_grad=(tf.minimum(features * tf.exp(-tf.abs(features)),features))
+  activation_grad=(tf.minimum(tf.add(features, [1]) * tf.exp(-tf.abs(features)), 1))
   return grad * activation_grad
 
 @function.Defun(
