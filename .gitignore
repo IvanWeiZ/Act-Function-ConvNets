@@ -208,6 +208,7 @@ compressed/
 # out files
 *.out
 models/
+.nfs*
 test.ny
 *.swo
 a.py
