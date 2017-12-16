@@ -4,10 +4,10 @@
 save=$1
 depth=$2
 width=$3
-dataset=$4
-dataroot=$5
-activation=$6
-batchSize=$7
+batchSize=$4
+dataset=$5
+dataroot=$6
+activation=$7
 
 
 
@@ -23,7 +23,7 @@ fi
 #declare -a functions=("relu" "lrelu" "tanh" "elu" "swish")
 for func in "${functions[@]}" 
 do
-	modelpath=$1"/""$4""_WRN-""$2""-""$3""_batch_size-""$7""_activation-""$func"
+	modelpath=$1"/""$5""_WRN-""$2""-""$3""_batch_size-""$4""_activation-""$func"
 
 	echo "Running--------------" python main.py --save $modelpath --depth "$depth" \
 	 --width "$width" --dataset "$dataset" --dataroot "$dataroot" --activation "$activation" \
