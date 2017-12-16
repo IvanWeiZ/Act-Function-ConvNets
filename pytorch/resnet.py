@@ -6,20 +6,6 @@ from utils import conv_params, linear_params, bnparams, bnstats, \
 
 
 class Swish(Module):
-    """Implementation of Swish: a Self-Gated Activation Function
-        Swish activation is simply f(x)=x⋅sigmoid(x)
-        Paper: https://arxiv.org/abs/1710.05941
-    Shape:
-        - Input: :math:`(N, *)` where `*` means, any number of additional
-          dimensions
-        - Output: :math:`(N, *)`, same shape as the input
-    Examples::
-        >>> m = nn.Swish()
-        >>> input = autograd.Variable(torch.randn(2))
-        >>> print(input)
-        >>> print(m(input))
-    """
-
     def forward(self, input):
         return (input * torch.sigmoid(input))
 
@@ -30,18 +16,6 @@ def swish(input):
     eturn (input * torch.sigmoid(input))
 
 class New(Module):
-    """Implementation of new
-    Shape:
-        - Input: :math:`(N, *)` where `*` means, any number of additional
-          dimensions
-        - Output: :math:`(N, *)`, same shape as the input
-    Examples::
-        >>> m = nn.Swish()
-        >>> input = autograd.Variable(torch.randn(2))
-        >>> print(input)
-        >>> print(m(input))
-    """
-
     def forward(self, input):
         return input+F.relu(x * torch.exp(-torch.abs(input)) - input)
 
