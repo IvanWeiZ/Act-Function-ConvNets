@@ -50,12 +50,9 @@ def _new_grad(features, grad):
 
 
 @function.Defun(grad_func=_new_grad, shape_func=_new_shape, func_name="new", noinline=True)
-
 def _new_shape(op):
   """Shape helper function for new and _new_grad function below."""
   return [op.inputs[0].shape]
-
-
 
 @function.Defun(shape_func=_new_shape, func_name="new_grad", noinline=True)
 def _new_grad(features, grad):
@@ -68,8 +65,6 @@ def _new_grad(features, grad):
   shape_func=_new_shape,
   func_name="new",
   noinline=True)
-
-
 def new(features):
   # pylint: disable=g-doc-args
   """Computes the New activation function we created.
