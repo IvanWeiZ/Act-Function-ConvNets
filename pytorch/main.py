@@ -77,8 +77,10 @@ def create_dataset(opt, mode):
         T.RandomCrop(32),
         convert,
     ])
-
-    ds = getattr(datasets, opt.dataset)(opt.dataroot, train=mode, download=True)
+    if opt.dataset=="SVHN":
+        ds = getattr(datasets, opt.dataset)(opt.dataroot, split=mode, download=True)
+    else
+        ds = getattr(datasets, opt.dataset)(opt.dataroot, train=mode, download=True)
     smode = 'train' if mode else 'test'
     ds = tnt.dataset.TensorDataset([getattr(ds, smode + '_data'),
                                     getattr(ds, smode + '_labels')])
