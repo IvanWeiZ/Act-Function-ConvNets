@@ -95,6 +95,7 @@ _ACTIVATIONS = {
     'swish' : swish,
     'new' : new }
 actfun = _ACTIVATIONS[activation] 
+print("--------activation function using is :",actfun)
 
 INPUT_NODE = 784     
 OUTPUT_NODE = 10     

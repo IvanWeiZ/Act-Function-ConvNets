@@ -3,6 +3,100 @@ from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("~/data/MNIST/", one_hot=True)
 
 
+import argparse
+
+
+
+def _swish_shape(op):
+  """Shape helper function for swish and _swish_grad function below."""
+  return [op.inputs[0].shape]
+
+
+# Set noinline=True so that sigmoid(features) is re-computed during
+# backprop, and we can free the sigmoid(features) expression immediately
+# after use during the forward pass.
+@function.Defun(shape_func=_swish_shape, func_name="swish_grad", noinline=True)
+def _swish_grad(features, grad):
+  """Gradient of Swish function defined below."""
+  sigmoid_features = tf.sigmoid(features)
+  activation_grad = (
+      sigmoid_features * (1.0 + features * (1.0 - sigmoid_features)))
+  return grad * activation_grad
+
+
+@function.Defun(
+    grad_func=_swish_grad,
+    shape_func=_swish_shape,
+    func_name="swish",
+    noinline=True)
+def swish(features):
+  # pylint: disable=g-doc-args
+  """Computes the Swish activation function: `x * sigmoid(x)`.
+  Source: "Swish: a Self-Gated Activation Function" (Ramachandran et al. 2017)
+  https://arxiv.org/abs/1710.05941
+  Args:
+    features: A `Tensor` representing preactivation values.
+    name: A name for the operation (optional).
+  Returns:
+    The activation value.
+  """
+  # pylint: enable=g-doc-args
+  features = tf.convert_to_tensor(features, name="features")
+  return features * tf.sigmoid(features)
+
+def _new_shape(op):
+  """Shape helper function for new and _new_grad function below."""
+  return [op.inputs[0].shape]
+
+#@function.Defun(grad_func=_new_grad, shape_func=_new_shape, func_name="new", noinline=True)
+#def _new_shape(op):
+#  """Shape helper function for new and _new_grad function below."""
+#  return [op.inputs[0].shape]
+
+@function.Defun(shape_func=_new_shape, func_name="new_grad", noinline=True)
+def _new_grad(features, grad):
+  """Gradient of new function defined below."""
+  activation_grad=(tf.minimum(tf.add(features, [1]) * tf.exp(features), 1))
+  return grad * activation_grad
+
+@function.Defun(
+  grad_func=_new_grad,
+  shape_func=_new_shape,
+  func_name="new",
+  noinline=True)
+def new(features):
+  # pylint: disable=g-doc-args
+  """Computes the New activation function we created.
+  Args:
+  features: A Tensor representing preactivation values.
+  name: A name for the operation (optional).
+  Returns:
+  The activation value.
+  """
+  # pylint: enable=g-doc-args
+  features = tf.convert_to_tensor(features, name="features")
+  return tf.maximum(features,features * tf.exp(-tf.abs(features)))
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--activation', type=str, default='relu', help='swish/relu/elu/lrelu/tanh/new')
+opt = parser.parse_args()
+activation=opt.activation
+
+actfun=None
+
+_ACTIVATIONS = {
+    None : None,
+    'relu' : tf.nn.relu,
+    'elu' : tf.nn.elu,
+    'lrelu' : tf.nn.leaky_relu,
+    'tanh' : tf.nn.tanh,
+    'swish' : swish,
+    'new' : new }
+actfun = _ACTIVATIONS[activation] 
+print("--------activation function using is :",actfun)
+
+
 INPUT_NODE = 784     
 OUTPUT_NODE = 10     
 LAYER1_NODE = 500         
@@ -17,12 +111,12 @@ MOVING_AVERAGE_DECAY = 0.99
 
 def inference(input_tensor, avg_class, weights1, biases1, weights2, biases2):
     if avg_class == None:
-        layer1 = tf.nn.relu(tf.matmul(input_tensor, weights1) + biases1)
+        layer1 = actfun(tf.matmul(input_tensor, weights1) + biases1)
         return tf.matmul(layer1, weights2) + biases2
 
     else:
         
-        layer1 = tf.nn.relu(tf.matmul(input_tensor, avg_class.average(weights1)) + avg_class.average(biases1))
+        layer1 = actfun(tf.matmul(input_tensor, avg_class.average(weights1)) + avg_class.average(biases1))
         return tf.matmul(layer1, avg_class.average(weights2)) + avg_class.average(biases2)  
     
 def train(mnist):
