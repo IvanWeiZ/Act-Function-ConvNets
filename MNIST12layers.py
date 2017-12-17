@@ -1,7 +1,100 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
+from tensorflow.python.framework import function
+
 mnist = input_data.read_data_sets("~/data/MNIST/", one_hot=True)
 
+import argparse
+
+
+
+def _swish_shape(op):
+  """Shape helper function for swish and _swish_grad function below."""
+  return [op.inputs[0].shape]
+
+
+# Set noinline=True so that sigmoid(features) is re-computed during
+# backprop, and we can free the sigmoid(features) expression immediately
+# after use during the forward pass.
+@function.Defun(shape_func=_swish_shape, func_name="swish_grad", noinline=True)
+def _swish_grad(features, grad):
+  """Gradient of Swish function defined below."""
+  sigmoid_features = tf.sigmoid(features)
+  activation_grad = (
+      sigmoid_features * (1.0 + features * (1.0 - sigmoid_features)))
+  return grad * activation_grad
+
+
+@function.Defun(
+    grad_func=_swish_grad,
+    shape_func=_swish_shape,
+    func_name="swish",
+    noinline=True)
+def swish(features):
+  # pylint: disable=g-doc-args
+  """Computes the Swish activation function: `x * sigmoid(x)`.
+  Source: "Swish: a Self-Gated Activation Function" (Ramachandran et al. 2017)
+  https://arxiv.org/abs/1710.05941
+  Args:
+    features: A `Tensor` representing preactivation values.
+    name: A name for the operation (optional).
+  Returns:
+    The activation value.
+  """
+  # pylint: enable=g-doc-args
+  features = tf.convert_to_tensor(features, name="features")
+  return features * tf.sigmoid(features)
+
+def _new_shape(op):
+  """Shape helper function for new and _new_grad function below."""
+  return [op.inputs[0].shape]
+
+#@function.Defun(grad_func=_new_grad, shape_func=_new_shape, func_name="new", noinline=True)
+#def _new_shape(op):
+#  """Shape helper function for new and _new_grad function below."""
+#  return [op.inputs[0].shape]
+
+@function.Defun(shape_func=_new_shape, func_name="new_grad", noinline=True)
+def _new_grad(features, grad):
+  """Gradient of new function defined below."""
+  activation_grad=(tf.minimum(tf.add(features, [1]) * tf.exp(features), 1))
+  return grad * activation_grad
+
+@function.Defun(
+  grad_func=_new_grad,
+  shape_func=_new_shape,
+  func_name="new",
+  noinline=True)
+def new(features):
+  # pylint: disable=g-doc-args
+  """Computes the New activation function we created.
+  Args:
+  features: A Tensor representing preactivation values.
+  name: A name for the operation (optional).
+  Returns:
+  The activation value.
+  """
+  # pylint: enable=g-doc-args
+  features = tf.convert_to_tensor(features, name="features")
+  return tf.maximum(features,features * tf.exp(-tf.abs(features)))
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--activation', type=str, default='relu', help='swish/relu/elu/lrelu/tanh/new')
+opt = parser.parse_args()
+activation=opt.activation
+
+actfun=None
+
+_ACTIVATIONS = {
+    None : None,
+    'relu' : tf.nn.relu,
+    'elu' : tf.nn.elu,
+    'lrelu' : tf.nn.leaky_relu,
+    'tanh' : tf.nn.tanh,
+    'swish' : swish,
+    'new' : new }
+actfun = _ACTIVATIONS[activation] 
 
 INPUT_NODE = 784     
 OUTPUT_NODE = 10     
@@ -26,50 +119,29 @@ MOVING_AVERAGE_DECAY = 0.99
 
 def inference(input_tensor, avg_class, W, B):
     if avg_class == None:
-        ac_1=tf.matmul(input_tensor, W[0]) + B[0]
-        layer1 = ac_1*tf.nn.sigmoid(ac_1)
-        ac_2 = tf.matmul(layer1, W[1]) + B[1]
-        layer2 = ac_2*tf.nn.sigmoid(ac_2)
-        ac_3 = tf.matmul(layer2, W[2]) + B[2]
-        layer3 = ac_3*tf.nn.sigmoid(ac_3)
-        ac_4 = tf.matmul(layer3, W[3]) + B[3]
-        layer4 = ac_4*tf.nn.sigmoid(ac_4)
-        ac_5 = tf.matmul(layer4, W[4]) + B[4]
-        layer5 = ac_5*tf.nn.sigmoid(ac_5)
-        ac_6 = tf.matmul(layer5, W[5]) + B[5]
-        layer6 = ac_6*tf.nn.sigmoid(ac_6)
-        ac_7 = tf.matmul(layer6, W[6]) + B[6]
-        layer7 = ac_7*tf.nn.sigmoid(ac_7)
-        ac_8 = tf.matmul(layer7, W[7]) + B[7]
-        layer8 = ac_8*tf.nn.sigmoid(ac_8)
-        ac_9 = tf.matmul(layer8, W[8]) + B[8]
-        layer9 = ac_9*tf.nn.sigmoid(ac_9)
-        ac_10 = tf.matmul(layer9, W[9]) + B[9]
-        layer10 = ac_10*tf.nn.sigmoid(ac_10)
+        layer1 = actfun(tf.matmul(input_tensor, W[0]) + B[0])
+        layer2 = actfun(tf.matmul(layer1, W[1]) + B[1])
+        layer3 = actfun(tf.matmul(layer2, W[2]) + B[2])
+        layer4 = actfun(tf.matmul(layer3, W[3]) + B[3])
+        layer5 = actfun(tf.matmul(layer4, W[4]) + B[4])
+        layer6 = actfun(tf.matmul(layer5, W[5]) + B[5])
+        layer7 = actfun(tf.matmul(layer6, W[6]) + B[6])
+        layer8 = actfun(tf.matmul(layer7, W[7]) + B[7])
+        layer9 = actfun(tf.matmul(layer8, W[8]) + B[8])
+        layer10 = actfun(tf.matmul(layer9, W[9]) + B[9])
         return tf.matmul(layer10, W[10]) + B[10]
-    
-    else:
-        ac_1=tf.matmul(input_tensor, avg_class.average(W[0])) + avg_class.average(B[0])
-        layer1 = ac_1*tf.nn.sigmoid(ac_1)
-        ac_2=tf.matmul(layer1, avg_class.average(W[1])) + avg_class.average(B[1])
-        layer2 = ac_2*tf.nn.sigmoid(ac_2)
-        ac_3=tf.matmul(layer2, avg_class.average(W[2])) + avg_class.average(B[2])
-        layer3 = ac_3*tf.nn.sigmoid(ac_3)
-        ac_4=tf.matmul(layer3, avg_class.average(W[3])) + avg_class.average(B[3])
-        layer4 = ac_4*tf.nn.sigmoid(ac_4)
-        ac_5=tf.matmul(layer4, avg_class.average(W[4])) + avg_class.average(B[4])
-        layer5 = ac_5*tf.nn.sigmoid(ac_5)
-        ac_6=tf.matmul(layer5, avg_class.average(W[5])) + avg_class.average(B[5])
-        layer6 = ac_6*tf.nn.sigmoid(ac_6)
-        ac_7=tf.matmul(layer6, avg_class.average(W[6])) + avg_class.average(B[6])
-        layer7 = ac_7*tf.nn.sigmoid(ac_7)
-        ac_8=tf.matmul(layer7, avg_class.average(W[7])) + avg_class.average(B[7])
-        layer8 = ac_8*tf.nn.sigmoid(ac_8)
-        ac_9=tf.matmul(layer8, avg_class.average(W[8])) + avg_class.average(B[8])
-        layer9 = ac_9*tf.nn.sigmoid(ac_9)
-        ac_10=tf.matmul(layer9, avg_class.average(W[9])) + avg_class.average(B[9])
-        layer10 = ac_10*tf.nn.sigmoid(ac_10)
-        return tf.matmul(layer10, avg_class.average(W[10])) + avg_class.average(B[10])  
+    else:  
+        layer1 = actfun(tf.matmul(input_tensor, avg_class.average(W[0])) + avg_class.average(B[0]))
+        layer2 = actfun(tf.matmul(layer1, avg_class.average(W[1])) + avg_class.average(B[1]))
+        layer3 = actfun(tf.matmul(layer2, avg_class.average(W[2])) + avg_class.average(B[2]))
+        layer4 = actfun(tf.matmul(layer3, avg_class.average(W[3])) + avg_class.average(B[3]))
+        layer5 = actfun(tf.matmul(layer4, avg_class.average(W[4])) + avg_class.average(B[4]))
+        layer6 = actfun(tf.matmul(layer5, avg_class.average(W[5])) + avg_class.average(B[5]))
+        layer7 = actfun(tf.matmul(layer6, avg_class.average(W[6])) + avg_class.average(B[6]))
+        layer8 = actfun(tf.matmul(layer7, avg_class.average(W[7])) + avg_class.average(B[7]))
+        layer9 = actfun(tf.matmul(layer8, avg_class.average(W[8])) + avg_class.average(B[8]))
+        layer10 = actfun(tf.matmul(layer9, avg_class.average(W[9])) + avg_class.average(B[9]))
+        return tf.matmul(layer10, avg_class.average(W[10])) + avg_class.average(B[10])   
     
 def train(mnist):
     x = tf.placeholder(tf.float32, [None, INPUT_NODE], name='x-input')
