@@ -79,7 +79,6 @@ def create_dataset(opt, mode):
     ])
     smode = 'train' if mode else 'test'
     if opt.dataset=="SVHN":
-        if
         ds = getattr(datasets, opt.dataset)(opt.dataroot, split=smode, download=True)
     else:
         ds = getattr(datasets, opt.dataset)(opt.dataroot, train=mode, download=True)
