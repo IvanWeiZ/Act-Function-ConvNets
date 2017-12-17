@@ -82,13 +82,15 @@ def create_dataset(opt, mode):
         ds = getattr(datasets, opt.dataset)(opt.dataroot, split=smode, download=True)
         ds = tnt.dataset.TensorDataset([getattr(ds,  'data'),
                                     getattr(ds,'labels')])
+        return ds
     else:
         ds = getattr(datasets, opt.dataset)(opt.dataroot, train=mode, download=True)
         ds = tnt.dataset.TensorDataset([getattr(ds, smode + '_data'),
                                     getattr(ds, smode + '_labels')])
+        return ds.transform({0: train_transform if mode else convert})
     
 
-    return ds.transform({0: train_transform if mode else convert})
+
 
 
 def main():
