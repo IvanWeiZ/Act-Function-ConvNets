@@ -80,11 +80,14 @@ def create_dataset(opt, mode):
     smode = 'train' if mode else 'test'
     if opt.dataset=="SVHN":
         ds = getattr(datasets, opt.dataset)(opt.dataroot, split=smode, download=True)
+        ds = tnt.dataset.TensorDataset([getattr(ds,  'data'),
+                                    getattr(ds,'labels')])
     else:
         ds = getattr(datasets, opt.dataset)(opt.dataroot, train=mode, download=True)
-    
-    ds = tnt.dataset.TensorDataset([getattr(ds, smode + '_data'),
+        ds = tnt.dataset.TensorDataset([getattr(ds, smode + '_data'),
                                     getattr(ds, smode + '_labels')])
+    
+
     return ds.transform({0: train_transform if mode else convert})
 
 
