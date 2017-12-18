@@ -212,3 +212,5 @@ models/
 test.ny
 *.swo
 a.py
+checkpoints/
+data/
