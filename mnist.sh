@@ -4,8 +4,8 @@ declare -a functions=("relu" "lrelu" "tanh" "elu" "swish" "new")
 
 for func in "${functions[@]}" 
 do
-	time python MNIST3layers.py.py --activation "$func" >> ~/MNIST_logs/MNIST_3_"$func"
-	time python MNIST12layers.py.py --activation "$func" >> ~/MNIST_logs/MNIST_12_"$func"
+	time python MNIST3layers.py --activation "$func" >> ~/MNIST_logs/MNIST_3_"$func"
+	time python MNIST12layers.py --activation "$func" >> ~/MNIST_logs/MNIST_12_"$func"
 done
 
 
