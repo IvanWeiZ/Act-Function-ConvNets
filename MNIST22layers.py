@@ -258,7 +258,7 @@ def train(mnist):
     
     regularizer = tf.contrib.layers.l2_regularizer(REGULARAZTION_RATE)
     regularaztion = regularizer(W[0]) 
-    for i in range(1,11):
+    for i in range(1,21):
         regularazation=regularaztion + regularizer(W[i]) 
     loss = cross_entropy_mean + regularaztion
     
