@@ -227,7 +227,8 @@ def train(mnist):
             
             xs,ys=mnist.train.next_batch(BATCH_SIZE)
             sess.run(train_op,feed_dict={x:xs,y_:ys})
-
+        validate_acc = sess.run(accuracy, feed_dict=validate_feed)
+        print("After %d training step(s), validation accuracy using average model is %g " % (TRAINING_STEPS, validate_acc))
         test_acc=sess.run(accuracy,feed_dict=test_feed)
         print(("After %d training step(s), test accuracy using average model is %g" %(TRAINING_STEPS, test_acc)))
 
