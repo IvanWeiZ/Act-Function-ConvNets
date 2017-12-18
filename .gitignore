@@ -212,3 +212,7 @@ models/
 test.ny
 *.swo
 a.py
+checkpoints/
+data/
+pytorch/cifar-10-batches-py/data_batch_4
+pytorch/cifar-10-batches-py/test_batch

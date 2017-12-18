@@ -7,12 +7,22 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 #import seaborn as sns
 from datetime import timedelta
+import argparse
+import activations
 
 batch_size = 128
 total_iterations = 0
+_ACTIVATIONS = {'relu' : tf.nn.relu,
+                'elu' : tf.nn.elu,
+                'lrelu' : tf.nn.leaky_relu,
+                'tanh' : tf.nn.tanh,
+                'swish' : activations.swish,
+                'new' : activations.new }  
 
-print("Tensorflow version", tf.__version__)
-
+parser = argparse.ArgumentParser()
+parser.add_argument('--activation', type=str, default='relu')
+parser.add_argument('--size', type=int, default=10)
+parser.add_argument('--num_epochs', type=int, default=100)
 
 def conv_weight_variable(layer_name, shape):
     """ Retrieve an existing variable with the given layer name 
@@ -34,7 +44,8 @@ def conv_layer(input,               # The previous layer
                 num_input_channels, # Num. channels in prev. layer
                 filter_size,        # Width and height of each filter
                 num_filters,        # Number of filters
-                pooling=True):      # Use 2x2 max-pooling
+                pooling=True,
+                activation=_ACTIVATIONS['relu']):      # Use 2x2 max-pooling
 
     # Shape of the filter-weights for the convolution
     shape = [filter_size, filter_size, num_input_channels, num_filters]
@@ -55,7 +66,7 @@ def conv_layer(input,               # The previous layer
     layer += biases
     
     # Rectified Linear Unit (RELU)
-    layer = tf.nn.relu(layer)
+    layer = activation(layer)
 
     # Down-sample the image resolution?
     if pooling:
@@ -84,7 +95,7 @@ def fc_layer(input,        # The previous layer
              layer_name,   # The layer name
              num_inputs,   # Num. inputs from prev. layer
              num_outputs,  # Num. outputs
-             relu=True):   # Use RELU?
+             activation=_ACTIVATIONS['relu']):   # Use RELU?
 
     # Create new weights and biases.
     weights = fc_weight_variable(layer_name, shape=[num_inputs, num_outputs])
@@ -94,8 +105,8 @@ def fc_layer(input,        # The previous layer
     layer = tf.matmul(input, weights) + biases
 
     # Use ReLU?
-    if relu:
-        layer = tf.nn.relu(layer)
+    if activation:
+        layer = activation(layer)
 
     return layer
 
@@ -144,175 +155,178 @@ def optimize(session, optimizer, x, y_true, X_val, y_val, X_test, y_test, dropou
 
 
 def main():
+  FLAGS, unparsed = parser.parse_known_args()
   # Open the file as readonly
-	h5f = h5py.File('data/SVHN_single_grey.h5', 'r')
+  h5f = h5py.File('data/SVHN_single_grey.h5', 'r')
 
 	# Load the training, test and validation set
-	X_train = h5f['X_train'][:]
-	y_train = h5f['y_train'][:]
-	X_test = h5f['X_test'][:]
-	y_test = h5f['y_test'][:]
-	X_val = h5f['X_val'][:]
-	y_val = h5f['y_val'][:]
+  X_train = h5f['X_train'][:]
+  y_train = h5f['y_train'][:]
+  X_test = h5f['X_test'][:]
+  y_test = h5f['y_test'][:]
+  X_val = h5f['X_val'][:]
+  y_val = h5f['y_val'][:]
 
 	# Close this file
-	h5f.close()
+  h5f.close()
 
-	print('Training set', X_train.shape, y_train.shape)
-	print('Validation set', X_val.shape, y_val.shape)
-	print('Test set', X_test.shape, y_test.shape)
+  print('Training set', X_train.shape, y_train.shape)
+  print('Validation set', X_val.shape, y_val.shape)
+  print('Test set', X_test.shape, y_test.shape)
 
 	# We know that SVHN images have 32 pixels in each dimension
-	img_size = X_train.shape[1]
+  img_size = X_train.shape[1]
 
 	# Greyscale images only have 1 color channel
-	num_channels = X_train.shape[-1]
+  num_channels = X_train.shape[-1]
 
 	# Number of classes, one class for each of 10 digits
-	num_classes = y_train.shape[1]
+  num_classes = y_train.shape[1]
 
 	# Calculate the mean on the training data
-	train_mean = np.mean(X_train, axis=0)
+  train_mean = np.mean(X_train, axis=0)
 
 	# Calculate the std on the training data
-	train_std = np.std(X_train, axis=0)
+  train_std = np.std(X_train, axis=0)
 
 	# Subtract it equally from all splits
-	X_train = (X_train - train_mean) / train_std
-	X_test = (X_test - train_mean)  / train_std
-	X_val = (train_mean - X_val) / train_std
+  X_train = (X_train - train_mean) / train_std
+  X_test = (X_test - train_mean)  / train_std
+  X_val = (train_mean - X_val) / train_std
 
-		# Convolutional Layer 1.
-	filter_size1 = 5          # Convolution filters are 5 x 5 pixels.
-	num_filters1 = 32         # There are 16 of these filters.
+	# Convolutional Layer 1.
+  filter_size1 = 5          # Convolution filters are 5 x 5 pixels.
+  num_filters1 = 32         # There are 16 of these filters.
 
-	# Convolutional Layer 2.
-	filter_size2 = 5          # Convolution filters are 5 x 5 pixels.
-	num_filters2 = 64         # There are 36 of these filters.
+ 	# Convolutional Layer 2.
+  filter_size2 = 5          # Convolution filters are 5 x 5 pixels.
+  num_filters2 = 64         # There are 36 of these filters.
 
 	# Fully-connected layer.
-	fc_size = 256            # Number of neurons in fully-connected layer.
+  fc_size = 256            # Number of neurons in fully-connected layer.
 
-	x = tf.placeholder(tf.float32, shape=(None, img_size, img_size, num_channels), name='x')
+  x = tf.placeholder(tf.float32, shape=(None, img_size, img_size, num_channels), name='x')
 
-	y_true = tf.placeholder(tf.float32, shape=[None, 10], name='y_true')
+  y_true = tf.placeholder(tf.float32, shape=[None, 10], name='y_true')
 
-	y_true_cls = tf.argmax(y_true, dimension=1)
+  y_true_cls = tf.argmax(y_true, dimension=1)
 
-	keep_prob = tf.placeholder(tf.float32)
+  keep_prob = tf.placeholder(tf.float32)
 
-	conv_1, w_c1 = conv_layer(input=x,
-	                          layer_name="conv_1",
-	                          num_input_channels=num_channels,
-	                          filter_size=filter_size1,
-	                          num_filters=num_filters1, pooling=True)
+  conv_1, w_c1 = conv_layer(input=x,
+                            layer_name="conv_1",
+                            num_input_channels=num_channels,
+                            filter_size=filter_size1,
+                            num_filters=num_filters1, pooling=True,
+                            activation=_ACTIVATIONS[FLAGS.activation])
 
-	conv_1
+  conv_1
 
-	conv_2, w_c2 = conv_layer(input=conv_1,
-	                          layer_name="conv_2",
-	                          num_input_channels=num_filters1,
-	                          filter_size=filter_size2,
-	                          num_filters=num_filters2,
-	                          pooling=True)
+  conv_2, w_c2 = conv_layer(input=conv_1,
+                            layer_name="conv_2",
+                            num_input_channels=num_filters1,
+                            filter_size=filter_size2,
+                            num_filters=num_filters2,
+                            pooling=True,
+                            activation=_ACTIVATIONS[FLAGS.activation])
 
 	# Apply dropout after the pooling operation
-	dropout = tf.nn.dropout(conv_2, keep_prob)
+  dropout = tf.nn.dropout(conv_2, keep_prob)
 
-	dropout
+  dropout
 
-	layer_flat, num_features = flatten_layer(dropout)
+  layer_flat, num_features = flatten_layer(dropout)
 
-	layer_flat
+  layer_flat
 
-	fc_1 = fc_layer(input=layer_flat,
-	                layer_name="fc_1",
-	                num_inputs=num_features,
-	                num_outputs=fc_size,
-	                relu=True)
+  fc_1 = fc_layer(input=layer_flat,
+                  layer_name="fc_1",
+                  num_inputs=num_features,
+                  num_outputs=fc_size,
+                  activation=_ACTIVATIONS[FLAGS.activation])
 
-	fc_1
+  fc_1
 
-	fc_2 = fc_layer(input=fc_1,
-	                layer_name="fc_2",
-	                num_inputs=fc_size,
-	                num_outputs=num_classes,
-	                relu=False)
+  fc_2 = fc_layer(input=fc_1,
+                  layer_name="fc_2",
+                  num_inputs=fc_size,
+                  num_outputs=num_classes,
+                  activation=_ACTIVATIONS[FLAGS.activation])
 
-	fc_2
+  fc_2
 
-	y_pred = tf.nn.softmax(fc_2)
+  y_pred = tf.nn.softmax(fc_2)
 
-	# The class-number is the index of the largest element.
-	y_pred_cls = tf.argmax(y_pred, dimension=1)
+  # The class-number is the index of the largest element.
+  y_pred_cls = tf.argmax(y_pred, dimension=1)
 
-	# Calcualte the cross-entropy
-	cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=fc_2, labels=y_true)
+  # Calcualte the cross-entropy
+  cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=fc_2, labels=y_true)
 
-	# Take the average of the cross-entropy for all the image classifications.
-	cost = tf.reduce_mean(cross_entropy)
+  # Take the average of the cross-entropy for all the image classifications.
+  cost = tf.reduce_mean(cross_entropy)
 
-	# Global step is required to compute the decayed learning rate
-	global_step = tf.Variable(0)
+  # Global step is required to compute the decayed learning rate
+  global_step = tf.Variable(0)
 
-	# Apply exponential decay to the learning rate
-	learning_rate = tf.train.exponential_decay(0.05, global_step, 10000, 0.96, staircase=True)
+  # Apply exponential decay to the learning rate
+  learning_rate = tf.train.exponential_decay(0.05, global_step, 10000, 0.96, staircase=True)
 
-	# Construct a new Adam optimizer
-	optimizer = tf.train.AdagradOptimizer(learning_rate).minimize(cost, global_step=global_step)
+  # Construct a new Adam optimizer
+  optimizer = tf.train.AdagradOptimizer(learning_rate).minimize(cost, global_step=global_step)
 
-	# Predicted class equals the true class of each image?
-	correct_prediction = tf.equal(y_pred_cls, y_true_cls)
+  # Predicted class equals the true class of each image?
+  correct_prediction = tf.equal(y_pred_cls, y_true_cls)
 
-	# Cast predictions to float and calculate the mean
-	accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+  # Cast predictions to float and calculate the mean
+  accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-	session = tf.Session()
+  session = tf.Session()
 
-	session.run(tf.initialize_all_variables())
+  session.run(tf.initialize_all_variables())
 
-	saver = tf.train.Saver()
+  saver = tf.train.Saver()
 
-	save_dir = 'checkpoints/'
+  save_dir = 'checkpoints/'
 
-	# Create directory if it does not exist
-	if not os.path.exists(save_dir):
-	    os.makedirs(save_dir)
+  # Create directory if it does not exist
+  if not os.path.exists(save_dir):
+      os.makedirs(save_dir)
 	    
-	save_path = os.path.join(save_dir, 'svhn_single_greyscale')
+  save_path = os.path.join(save_dir, 'svhn_single_greyscale_' + FLAGS.activation)
 
 
 	#saver.restore(sess=session, save_path=save_path)
 
 	# Number of training samples in each iteration 
-	batch_size = 64
+  batch_size = 128
 
 	# Keep probability in dropout layer
-	dropout = 0.5
+  dropout = 0.5
 
+  iterations=FLAGS.num_epochs * (X_train.shape[0]) / batch_size
+  optimize(session, optimizer, x, y_true, X_val, y_val, X_test, y_test, dropout, accuracy, keep_prob, X_train, y_train, num_iterations=iterations, display_step=1000)
 
-	optimize(session, optimizer, x, y_true, X_val, y_val, X_test, y_test, dropout, accuracy, keep_prob, X_train, y_train, num_iterations=50000, display_step=1000)
+  saver.save(sess=session, save_path=save_path)
 
-	saver.save(sess=session, save_path=save_path)
+  # Generate predictions for the testset
+  test_pred = session.run(y_pred_cls, {x: X_test, y_true: y_test, keep_prob: 1.0})
 
-# Generate predictions for the testset
-	test_pred = session.run(y_pred_cls, {x: X_test, y_true: y_test, keep_prob: 1.0})
+  # Find the incorrectly classified examples
+  incorrect = test_pred != np.argmax(y_test, axis=1)
 
-# Find the incorrectly classified examples
-	incorrect = test_pred != np.argmax(y_test, axis=1)
+  # Select the incorrectly classified examples
+  images = X_test[incorrect]
+  cls_true = y_test[incorrect]
+  cls_pred = test_pred[incorrect]
 
-# Select the incorrectly classified examples
-	images = X_test[incorrect]
-	cls_true = y_test[incorrect]
-	cls_pred = test_pred[incorrect]
+  # Find the incorrectly classified examples
+  correct = np.invert(incorrect)
 
-# Find the incorrectly classified examples
-	correct = np.invert(incorrect)
-
-# Select the correctly classified examples
-	images = X_test[correct]
-	cls_true = y_test[correct]
-	cls_pred = test_pred[correct]
+  # Select the correctly classified examples
+  images = X_test[correct]
+  cls_true = y_test[correct]
+  cls_pred = test_pred[correct]
 
 if __name__ =="__main__":
 	main()
