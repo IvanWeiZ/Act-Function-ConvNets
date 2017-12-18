@@ -1,7 +1,8 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("~/data/MNIST/", one_hot=True)
+from tensorflow.python.framework import function
 
+mnist = input_data.read_data_sets("~/data/MNIST/", one_hot=True)
 
 import argparse
 
@@ -95,7 +96,6 @@ _ACTIVATIONS = {
     'new' : new }
 actfun = _ACTIVATIONS[activation] 
 print("--------activation function using is :",actfun)
-
 
 INPUT_NODE = 784     
 OUTPUT_NODE = 10     
