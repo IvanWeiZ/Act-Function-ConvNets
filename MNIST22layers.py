@@ -243,7 +243,7 @@ def train(mnist):
     
     W=[weights1, weights2, weights3, weights4, weights5, weights6, weights7, weights8, weights9, weights10, weights11,
     weights12,weights13,weights14,weights15,weights16,weights17,weights18,weights19,weights20,weights21]
-    B=[biases1, biases2, biases3, biases4, biases5, biases6, biases7, biases8, biases9, biases10, biases11,biases12
+    B=[biases1, biases2, biases3, biases4, biases5, biases6, biases7, biases8, biases9, biases10, biases11,biases12,
     biases13,biases14,biases15,biases16,biases17,biases18,biases19,biases20,biases21]
     
     y = inference(x, None, W, B)
