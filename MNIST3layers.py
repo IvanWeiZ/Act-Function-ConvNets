@@ -108,15 +108,16 @@ LEARNING_RATE_DECAY = 0.99
 REGULARAZTION_RATE = 0.0001   
 TRAINING_STEPS = 10000        
 MOVING_AVERAGE_DECAY = 0.99 
+value=0.01
 
 def inference(input_tensor, avg_class, weights1, biases1, weights2, biases2):
     if avg_class == None:
-        layer1 = actfun(tf.matmul(input_tensor, weights1) + biases1)
+        layer1 = actfun(tf.matmul(input_tensor, weights1) + biases1,value)
         return tf.matmul(layer1, weights2) + biases2
 
     else:
         
-        layer1 = actfun(tf.matmul(input_tensor, avg_class.average(weights1)) + avg_class.average(biases1))
+        layer1 = actfun(tf.matmul(input_tensor, avg_class.average(weights1)) + avg_class.average(biases1),value)
         return tf.matmul(layer1, avg_class.average(weights2)) + avg_class.average(biases2)  
     
 def train(mnist):

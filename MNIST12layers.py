@@ -117,31 +117,32 @@ LEARNING_RATE_DECAY = 0.99
 REGULARAZTION_RATE = 0.0001   
 TRAINING_STEPS = 10000        
 MOVING_AVERAGE_DECAY = 0.99 
+value=0.01
 
 def inference(input_tensor, avg_class, W, B):
     if avg_class == None:
-        layer1 = actfun(tf.matmul(input_tensor, W[0]) + B[0])
-        layer2 = actfun(tf.matmul(layer1, W[1]) + B[1])
-        layer3 = actfun(tf.matmul(layer2, W[2]) + B[2])
-        layer4 = actfun(tf.matmul(layer3, W[3]) + B[3])
-        layer5 = actfun(tf.matmul(layer4, W[4]) + B[4])
-        layer6 = actfun(tf.matmul(layer5, W[5]) + B[5])
-        layer7 = actfun(tf.matmul(layer6, W[6]) + B[6])
-        layer8 = actfun(tf.matmul(layer7, W[7]) + B[7])
-        layer9 = actfun(tf.matmul(layer8, W[8]) + B[8])
-        layer10 = actfun(tf.matmul(layer9, W[9]) + B[9])
+        layer1 = actfun(tf.matmul(input_tensor, W[0]) + B[0],value)
+        layer2 = actfun(tf.matmul(layer1, W[1]) + B[1],value)
+        layer3 = actfun(tf.matmul(layer2, W[2]) + B[2],value)
+        layer4 = actfun(tf.matmul(layer3, W[3]) + B[3],value)
+        layer5 = actfun(tf.matmul(layer4, W[4]) + B[4],value)
+        layer6 = actfun(tf.matmul(layer5, W[5]) + B[5],value)
+        layer7 = actfun(tf.matmul(layer6, W[6]) + B[6],value)
+        layer8 = actfun(tf.matmul(layer7, W[7]) + B[7],value)
+        layer9 = actfun(tf.matmul(layer8, W[8]) + B[8],value)
+        layer10 = actfun(tf.matmul(layer9, W[9]) + B[9],value)
         return tf.matmul(layer10, W[10]) + B[10]
     else:  
-        layer1 = actfun(tf.matmul(input_tensor, avg_class.average(W[0])) + avg_class.average(B[0]))
-        layer2 = actfun(tf.matmul(layer1, avg_class.average(W[1])) + avg_class.average(B[1]))
-        layer3 = actfun(tf.matmul(layer2, avg_class.average(W[2])) + avg_class.average(B[2]))
-        layer4 = actfun(tf.matmul(layer3, avg_class.average(W[3])) + avg_class.average(B[3]))
-        layer5 = actfun(tf.matmul(layer4, avg_class.average(W[4])) + avg_class.average(B[4]))
-        layer6 = actfun(tf.matmul(layer5, avg_class.average(W[5])) + avg_class.average(B[5]))
-        layer7 = actfun(tf.matmul(layer6, avg_class.average(W[6])) + avg_class.average(B[6]))
-        layer8 = actfun(tf.matmul(layer7, avg_class.average(W[7])) + avg_class.average(B[7]))
-        layer9 = actfun(tf.matmul(layer8, avg_class.average(W[8])) + avg_class.average(B[8]))
-        layer10 = actfun(tf.matmul(layer9, avg_class.average(W[9])) + avg_class.average(B[9]))
+        layer1 = actfun(tf.matmul(input_tensor, avg_class.average(W[0])) + avg_class.average(B[0]),value)
+        layer2 = actfun(tf.matmul(layer1, avg_class.average(W[1])) + avg_class.average(B[1]),value)
+        layer3 = actfun(tf.matmul(layer2, avg_class.average(W[2])) + avg_class.average(B[2]),value)
+        layer4 = actfun(tf.matmul(layer3, avg_class.average(W[3])) + avg_class.average(B[3]),value)
+        layer5 = actfun(tf.matmul(layer4, avg_class.average(W[4])) + avg_class.average(B[4]),value)
+        layer6 = actfun(tf.matmul(layer5, avg_class.average(W[5])) + avg_class.average(B[5]),value)
+        layer7 = actfun(tf.matmul(layer6, avg_class.average(W[6])) + avg_class.average(B[6]),value)
+        layer8 = actfun(tf.matmul(layer7, avg_class.average(W[7])) + avg_class.average(B[7]),value)
+        layer9 = actfun(tf.matmul(layer8, avg_class.average(W[8])) + avg_class.average(B[8]),value)
+        layer10 = actfun(tf.matmul(layer9, avg_class.average(W[9])) + avg_class.average(B[9]),value)
         return tf.matmul(layer10, avg_class.average(W[10])) + avg_class.average(B[10])   
     
 def train(mnist):
