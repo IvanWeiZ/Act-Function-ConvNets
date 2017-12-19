@@ -15,7 +15,7 @@ activation=$7
 
 if [ "$activation" == "all" ];
 	then 
-		declare -a functions=("lrelu" "tanh" "elu" "swish")
+		declare -a functions=("lrelu")
 	else
 		declare -a functions=("$activation")
 fi
@@ -23,7 +23,7 @@ fi
 #declare -a functions=("relu" "lrelu" "tanh" "elu" "swish")
 for func in "${functions[@]}" 
 do
-	modelpath=$1"/""$5""_WRN-""$2""-""$3""_batch_size-""$4""_activation-""$func"
+	modelpath=$1"/""$5""_WRN-""$2""-""$3""_batch_size-""$4""_activation-""$func""02"
 
 	echo "Running--------------" python main.py --save $modelpath --depth "$depth" \
 	 --width "$width" --dataset "$dataset" --dataroot "$dataroot" --activation "$func" \
