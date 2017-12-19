@@ -77,9 +77,9 @@ def resnet(depth, width, num_classes,activation):
     })
 
     def block(x, params, stats, base, mode, stride):
-        o1 = actfun(batch_norm(x, params, stats, base + '.bn0', mode))
+        o1 = actfun(batch_norm(x, params, stats, base + '.bn0', mode),0.2)
         y = F.conv2d(o1, params[base + '.conv0'], stride=stride, padding=1)
-        o2 = actfun(batch_norm(y, params, stats, base + '.bn1', mode))
+        o2 = actfun(batch_norm(y, params, stats, base + '.bn1', mode),0.2)
         z = F.conv2d(o2, params[base + '.conv1'], stride=1, padding=1)
         if base + '.convdim' in params:
             return z + F.conv2d(o1, params[base + '.convdim'], stride=stride)
@@ -96,7 +96,7 @@ def resnet(depth, width, num_classes,activation):
         g0 = group(x, params, stats, 'group0', mode, 1)
         g1 = group(g0, params, stats, 'group1', mode, 2)
         g2 = group(g1, params, stats, 'group2', mode, 2)
-        o = actfun(batch_norm(g2, params, stats, 'bn', mode))
+        o = actfun(batch_norm(g2, params, stats, 'bn', mode),0.2)
         o = F.avg_pool2d(o, 8, 1, 0)
         o = o.view(o.size(0), -1)
         o = F.linear(o, params['fc.weight'], params['fc.bias'])
