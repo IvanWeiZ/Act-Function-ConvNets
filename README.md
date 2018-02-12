@@ -1,4 +1,6 @@
 # CSC2515
+[Report](https://github.com/IvanWeiZ/Act-Function-ConvNets/blob/master/evaluation-activation-functions.pdf)
+
 <h2> Running resnet model on cifar10 </h2>
 
 > python cifar10_main.py [options]
